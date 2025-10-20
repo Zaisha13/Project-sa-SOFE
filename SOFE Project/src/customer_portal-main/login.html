@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Jessie Cane</title>
+  <link rel="stylesheet" href="auth.css">
+  <link rel="stylesheet" href="popup.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <div class="left-header">
+      <img src="images/logo.png" id="drink_logo" alt="Jessie Cane Logo" onerror="this.style.display='none'">
+    </div>
+    <div class="right-header">
+      <a href="customer_dashboard.html" class="nav-btn">Home</a>
+      <a href="drinks.html" class="nav-btn">Menu</a>
+      <a href="profile.html" class="nav-btn">Profile</a>
+      <a href="inquiry.html" class="nav-btn">Inquiry</a>
+      <a href="login.html" class="nav-btn active">Login</a>
+    </div>
+  </header>
+
+  <!-- LOGIN FORM -->
+  <main>
+    <div class="login-container">
+      <h2>LOGIN</h2>
+      <form class="auth-form" id="loginForm">
+        <label for="email">Email or Username</label>
+        <input type="text" id="email" placeholder="Enter your email or username" required>
+
+        <label for="password">Password</label>
+        <input type="password" id="password" placeholder="Enter your password" required>
+
+        <button type="submit" class="btn-main">
+          <i class="fas fa-sign-in-alt"></i> Log In
+        </button>
+
+        <p class="login-divider">or</p>
+
+        <button type="button" class="btn-google" id="googleLogin">
+          <img src="images/google_icon.png" alt="Google Icon" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjI0IiBoZWlnaHQ9IjI0IiBmaWxsPSJ3aGl0ZSIvPgo8cGF0aCBkPSJNMjIuNTYgMTIuMjVDMjIuNTYgMTEuNDcgMjIuNDkgMTAuNzIgMjIuMzUgMTBIMTIuMjRWMTQuMjlIMTguMTlDMTcuOTQgMTUuNzEgMTcuMDggMTYuODkgMTUuODMgMTcuNjdWMTkuNzdIMTkuNDhDMjEuNDQgMTcuOTYgMjIuNTYgMTUuMzggMjIuNTYgMTIuMjVaIiBmaWxsPSIjNDI4NUY0Ii8+CjxwYXRoIGQ9Ik0xMi4yMyAyMi4wM0M5LjM0IDIyLjAzIDYuODIgMjAuNTUgNS4yNyAxOC4yM0wxLjk4IDIwLjVDNC4xNSAyMy41NSA3Ljg3IDI1LjUgMTIuMjMgMjUuNUMxNi4zOCAyNS41IDIwLjAxIDIzLjU4IDIyLjI0IDIwLjcxTDE5LjQ4IDE5Ljc3QzE3Ljg0IDIxLjQzIDE1LjI2IDIyLjAzIDEyLjIzIDIyLjAzWiIgZmlsbD0iIzM0QTgzNSIvPgo8cGF0aCBkPSJNNS4yNyA1Ljc3QzUuMDMgNi4zNCA0Ljg5IDYuOTcgNC44OSA3LjYyQzQuODkgOC4yNyA1LjAzIDguOSA1LjI3IDkuNDdWNS43N1oiIGZpbGw9IiNGQkJCMDAiLz4KPHBhdGggZD0iTTEyLjIzIDIuODhDMTQuODIgMi44OCAxNy4wNCAzLjk5IDE4LjY0IDUuNzdMMjIuMzUgMkMyMC4wMSAtMC4zMyAxNi4zOCAtMS4yNSAxMi4yMyAtMS4yNUM3Ljg3IC0xLjI1IDQuMTUgMC43IDEuOTggMy43NUw1LjI3IDUuNzdDNi44MiAzLjQ1IDkuMzQgMi44OCAxMi4yMyAyLjg4WiIgZmlsbD0iI0VBNDMzNSIvPgo8L3N2Zz4K'"> Connect with Google
+        </button>
+
+        <!-- Admin Login Button -->
+        <button type="button" class="btn-main" id="adminLoginBtn" style="background: linear-gradient(135deg, #8B4513, #A0522D); margin-top: 10px;">
+          <i class="fas fa-user-shield"></i> Login as Admin
+        </button>
+
+        <p class="auth-switch">
+          Don't have an account? <a href="register.html">Register here</a>
+        </p>
+      </form>
+    </div>
+  </main>
+
+  <script src="popup.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>

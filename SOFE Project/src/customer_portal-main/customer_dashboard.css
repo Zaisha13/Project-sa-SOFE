@@ -1,0 +1,339 @@
+/* customer_dashboard.css */
+
+@font-face {
+  font-family: rawr;
+  src: url(Cocogoose-Pro-Regular-trial.ttf);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: "Century Gothic", sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #FAF9F4; /* soft cream base */
+}
+
+/* Header */
+header {
+    background-color: #2E5D47; /* pastel mint green */
+    color: #2E5D47;
+    text-align: center;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 50px;
+    height: 50px;
+}  
+
+.left-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+#drink_logo {
+  height: 55px;
+  width: 100px;
+}
+
+
+.right-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-right: 5px;
+}
+
+.nav-btn {
+  position: relative;
+  text-decoration: none;
+  color: #FAF9F4;
+  font-weight: 600;
+  padding: 8px 15px;
+  border-radius: 8px;
+  transition: color 0.3s ease, background-color 0.3s ease;
+  overflow: hidden;
+}
+
+/* Smooth underline animation */
+.nav-btn::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: #E5C100; /* soft yellow underline */
+  transition: all 0.3s ease;
+  transform: translateX(-50%);
+}
+
+/* Hover effect: underline expands + glow background */
+.nav-btn:hover::after {
+  width: 60%;
+}
+
+.nav-btn:hover {
+  color: #FCF2C5;
+}
+
+/* Active page highlight */
+.nav-btn.active {
+  color: #FCF2C5;
+  background-color: transparent; /* keep transparent */
+  box-shadow: none; /* remove shadow */
+}
+
+.nav-btn.active::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 50%;          /* start from center */
+  width: 60%;          /* same as hover width */
+  height: 2px;
+  background-color: #E5C100;
+  transform: translateX(-50%); /* center underline under text */
+  transition: all 0.3s ease;
+}
+
+/* Logout button */
+.logout {
+  background-color: #FCF2C5;
+  color: #2E5D47;
+  border-radius: 8px;
+  padding: 8px 15px;
+  font-weight: 700;
+  transition: 0.3s ease;
+}
+
+.logout:hover {
+  background-color: #E5C100;
+  color: #2E5D47;
+  box-shadow: 0 0 10px rgba(229, 193, 0, 0.25);
+}
+
+/* Banner */
+.banner {
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+}
+.banner img{
+    width: 100%;
+    height: auto; 
+    display: block;
+    filter: brightness(0.8);
+}
+
+.text_overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #FCF2C5;
+    text-align: center;
+    max-width: 90%;
+    text-shadow: 0px 0px 20px #2E5D47;
+}
+
+.text_overlay h1 {
+    font-family: "Century Gothic", sans-serif;
+    font-size: 50px;
+    font-weight: 800;
+    margin: 0;
+}
+
+.text_overlay p {
+    font-size: 18px;
+    margin: 10px 0 20px;
+}
+
+.text_overlay button {
+    background-color: transparent;
+    border: 1px solid #2E5D47;
+    border-radius: 25px;
+    color: #2E5D47;
+    padding: 13px 23px;
+    font-size: 16px;
+    font-weight: 800;
+    font-family:Century Gothic, sans-serif;
+    letter-spacing: .5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s ease;
+    text-transform: uppercase;
+}
+
+.text_overlay button:hover {
+    background-color: #FCF2C5;
+    border: 1px solid #FCF2C5;
+    color: #2E5D47;
+}
+
+/* Featured Drinks Section */
+.container h2 {
+  font-size: 45px;
+  margin-top: 70px;
+  color: #2E5D47;
+  font-family: "Century Gothic", sans-serif;
+  text-align: center;
+  text-transform: uppercase;
+  font-weight: 900;
+  text-shadow: 1px 1px 0 #C8E7D0;
+}
+
+.products {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 35px;
+  padding: 40px 20px;
+}
+
+/* Drink Cards */
+.product {
+  background-color: white;
+  padding: 20px;
+  text-align: center;
+  border-radius: 20px;
+  box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+  flex: 1 1 250px;
+  max-width: 270px;
+  transition: all 0.3s ease;
+}
+
+.product:hover {
+  transform: translateY(-10px);
+  background-color: #FCF2C5; /* pastel yellow hover */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.product img {
+  height: 230px;
+  width: 200px;
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+.product h3 {
+  color: #2E5D47;
+  font-size: 22px;
+  margin-top: 10px;
+  font-weight: 700;
+}
+
+.product p {
+  color: #3B6651;
+  font-size: 15px;
+}
+
+#price {
+  color: #2E5D47;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.view-btn {
+  border: 1.5px solid #2E5D47;
+  background: transparent;
+  color: #2E5D47;
+  border-radius: 10px;
+  padding: 7px 15px;
+  font-size: 15px;
+  transition: all 0.3s;
+}
+
+.view-btn:hover {
+  background: #2E5D47;
+  color: #F5F1E6;
+}
+
+/* Footer */
+footer {
+  background-color: #2E5D47;
+  color: #FAF9F4;
+  text-align: center;
+  padding: 2px 0;
+  margin-top: 40px;
+  font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    height: auto;
+    padding: 15px;
+    text-align: center;
+  }
+
+  .right-header {
+    margin-top: 10px;
+  }
+
+  .products {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .product {
+    width: 85%;
+  }
+
+  .text_overlay h1 {
+    font-size: 35px;
+  }
+}
+
+/* Toast notifications */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 5px;
+    color: white;
+    z-index: 1000;
+    max-width: 300px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.toast-success {
+    background-color: #4CAF50;
+}
+
+.toast-error {
+    background-color: #f44336;
+}
+
+.toast-warning {
+    background-color: #ff9800;
+}
+
+.toast strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.no-image {
+    width: 100px;
+    height: 100px;
+    background: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: #666;
+    font-size: 12px;
+}
