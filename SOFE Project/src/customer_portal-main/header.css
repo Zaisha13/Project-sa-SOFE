@@ -1,0 +1,60 @@
+/* header.css - shared header and navbar styles used across customer pages */
+
+:root {
+  --header-bg: #2E5D47;
+  --header-text: #FAF9F4;
+  --header-accent: #E5C100;
+}
+
+header, .navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 40px;
+  background-color: var(--header-bg);
+  color: var(--header-text);
+}
+
+.left-header, .logo { display:flex; align-items:center; gap:10px; }
+.left-header img, .logo img { height:60px; }
+
+.right-header, .navbar ul { display:flex; gap:30px; align-items:center; margin:0; padding:0; }
+.navbar ul { list-style:none; }
+
+.nav-btn, .navbar a {
+  color: var(--header-text);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 16px;
+  position: relative;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.nav-btn::after, .navbar a::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  width: 0;
+  height: 2px;
+  background-color: var(--header-accent);
+  transform: translateX(-50%);
+  transition: all 0.25s ease;
+}
+.nav-btn:hover::after, .navbar a:hover::after { width: 60%; }
+.nav-btn:hover, .navbar a:hover { color: #FCF2C5; }
+.nav-btn.active, .navbar a.active { color: #FCF2C5; }
+
+.logout, .logout-btn {
+  background-color: #FCF2C5;
+  color: var(--header-bg);
+  border-radius: 8px;
+  padding: 8px 15px;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  header, .navbar { flex-direction: column; padding: 12px 20px; }
+  .right-header, .navbar ul { margin-top: 8px; gap: 12px; }
+}

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Profile | Jessie Cane</title>
+  <link rel="stylesheet" href="header.css">
+  <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+  <!-- header (shared) -->
+  <header>
+    <div class="left-header">
+      <img src="images/logo.png" id="drink_logo" alt="Jessie Cane Logo" onerror="this.style.display='none'">
+    </div>
+    <div class="right-header">
+      <a href="customer_dashboard.html" class="nav-btn">Home</a>
+      <a href="drinks.html" class="nav-btn">Menu</a>
+      <a href="profile.html" class="nav-btn active">Profile</a>
+      <a href="inquiry.html" class="nav-btn">Inquiry</a>
+      <a href="login.html" class="nav-btn logout">Logout</a>
+    </div>
+  </header>
+
+  <main class="profile-main">
+    <section class="profile-card">
+      <div class="left-col">
+        <div class="photo-wrap">
+          <img id="profile-photo" src="images/no-profile.png" alt="Profile photo">
+        </div>
+        <input id="photo-input" type="file" accept="image/*" />
+        <div class="photo-actions">
+          <button id="remove-photo" class="btn small">Remove</button>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <h2>Profile Information</h2>
+
+        <form id="profile-form">
+          <div class="field-row">
+            <label for="name">Full name</label>
+            <input id="name" type="text" required />
+            <div class="error-text" id="err-name" aria-live="polite"></div>
+          </div>
+
+          <div class="field-row">
+            <label for="gender">Gender</label>
+            <select id="gender">
+              <option value="">Select</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="prefer_not">Prefer not to say</option>
+            </select>
+            <div class="error-text" id="err-gender" aria-live="polite"></div>
+          </div>
+
+          <div class="field-row small-grid">
+            <div>
+              <label for="age">Age</label>
+              <input id="age" type="number" min="0" max="120" />
+              <div class="error-text" id="err-age" aria-live="polite"></div>
+            </div>
+            <div>
+              <label for="username">Username</label>
+              <input id="username" type="text" required />
+              <div class="error-text" id="err-username" aria-live="polite"></div>
+            </div>
+          </div>
+
+          <div class="field-row">
+            <label for="email">Email</label>
+            <input id="email" type="email" required />
+            <div class="error-text" id="err-email" aria-live="polite"></div>
+          </div>
+
+          <div class="field-row">
+            <label for="phone">Mobile phone</label>
+            <input id="phone" type="tel" placeholder="e.g. +63 9123456789" />
+            <div class="error-text" id="err-phone" aria-live="polite"></div>
+          </div>
+
+          <div class="field-row">
+            <label for="address">Address</label>
+            <textarea id="address" rows="3"></textarea>
+          </div>
+
+          <div class="actions-row">
+            <button type="button" id="save-profile" class="btn primary">Save Profile</button>
+            <button type="button" id="reset-password" class="btn">Reset Password</button>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <!-- Password modal -->
+  <div id="pw-modal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <h3>Reset Password</h3>
+      <p>Enter your current password and new password.</p>
+      <div class="field-row">
+        <label for="current-pw">Current password</label>
+        <input id="current-pw" type="password">
+      </div>
+      <div class="field-row">
+        <label for="new-pw">New password</label>
+        <input id="new-pw" type="password">
+      </div>
+      <div class="field-row">
+        <label for="confirm-pw">Confirm new password</label>
+        <input id="confirm-pw" type="password">
+      </div>
+      <div class="actions-row">
+        <button id="pw-cancel" class="btn">Cancel</button>
+        <button id="pw-save" class="btn primary">Save Password</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="header.js"></script>
+  <script src="profile.js"></script>
+</body>
+</html>

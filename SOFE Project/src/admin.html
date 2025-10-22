@@ -1,0 +1,1471 @@
+    <!-- Admin.html -->
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jessie Cane - Admin Dashboard</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+        <script>
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        colors: {
+                            'primary-dark': '#146B33',
+                            'secondary-cream': '#F8F5E9',
+                            'juice-highlight': '#FFD966',
+                            'accent-dark': '#0c4e23',
+                        }
+                    }
+                }
+            }
+        </script>
+
+        <style>
+            :root {
+                --juice-highlight: #FFD966;
+                --secondary-cream: #F8F5E9;
+                --primary-dark: #146B33;
+                --accent-dark: #0c4e23;
+            }
+
+            body {
+                background-color: var(--juice-highlight); 
+                font-family: Arial, sans-serif; 
+                margin: 0;
+                padding: 0;
+                display: flex; 
+                min-height: 100vh;
+            }
+            
+            h1, h2, h3, .logo-text, .nav-link, .cta-button {
+                font-family: Arial, sans-serif;
+                font-weight: bold;
+            }
+
+            #admin-sidebar {
+                width: 280px; 
+                background-color: var(--secondary-cream); 
+                box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                overflow-y: auto;
+                z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease-in-out; 
+            }
+            
+            @media (min-width: 768px) {
+                #admin-sidebar {
+                    transform: translateX(0);
+                }
+            }
+
+            #admin-sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content-wrapper {
+                flex-grow: 1;
+                padding: 1rem;
+                width: 100%;
+            }
+            
+            @media (min-width: 768px) {
+                .main-content-wrapper {
+                    margin-left: 280px; 
+                    width: calc(100% - 280px);
+                }
+            }
+
+            .main-container {
+                background-color: white; 
+                min-height: calc(100vh - 2rem);
+            }
+            
+            .text-shadow-juice {
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            }
+
+            .menu-card {
+                background-color: var(--secondary-cream);
+                border: 1px solid var(--primary-dark);
+                box-shadow: 0 4px 6px -1px rgba(20, 107, 51, 0.1), 0 2px 4px -2px rgba(20, 107, 51, 0.06);
+            }
+
+            .modal {
+                display: none;
+                position: fixed;
+                z-index: 200;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(20, 107, 51, 0.8);
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .modal-content {
+                max-width: 90%;
+                margin: 1rem;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            @media (min-width: 500px) {
+                .modal-content {
+                    max-width: 500px;
+                }
+            }
+
+            ::placeholder {
+                color: #146B33;
+                opacity: 0.7;
+            }
+            
+            .sidebar-link {
+                padding: 12px 20px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 1.25rem;
+                font-weight: 600;
+                color: var(--primary-dark);
+                transition: background-color 0.2s, color 0.2s;
+                border-left: 4px solid transparent;
+            }
+
+            .sidebar-link:hover, .sidebar-link.active {
+                background-color: rgba(20, 107, 51, 0.1); 
+                border-left-color: var(--juice-highlight);
+                color: var(--accent-dark);
+            }
+            
+            .sidebar-backdrop {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 90;
+                display: none;
+            }
+
+            .sidebar-backdrop.show {
+                display: block;
+            }
+            
+            .dashboard-card {
+                background-color: var(--secondary-cream);
+                border: 2px solid var(--primary-dark);
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(20, 107, 51, 0.1), 0 2px 4px -2px rgba(20, 107, 51, 0.06);
+            }
+            
+            .dashboard-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            
+            .dashboard-table th {
+                background-color: var(--primary-dark);
+                color: white;
+                padding: 0.75rem;
+                text-align: left;
+            }
+            
+            .dashboard-table td {
+                padding: 0.75rem;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .dashboard-table tr:nth-child(even) {
+                background-color: #f8fafc;
+            }
+            
+            .action-btn {
+                padding: 0.5rem 1rem;
+                border-radius: 0.5rem;
+                font-weight: bold;
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            
+            .approve-btn {
+                background-color: var(--primary-dark);
+                color: white;
+                border: none;
+            }
+            
+            .approve-btn:hover {
+                background-color: var(--accent-dark);
+            }
+            
+            .cancel-btn {
+                background-color: #e53e3e;
+                color: white;
+                border: none;
+            }
+            
+            .cancel-btn:hover {
+                background-color: #c53030;
+            }
+            
+            .stock-btn {
+                background-color: var(--juice-highlight);
+                color: var(--primary-dark);
+                border: 1px solid var(--primary-dark);
+                font-weight: bold;
+            }
+            
+            .stock-btn:hover {
+                background-color: var(--primary-dark);
+                color: white;
+            }
+            
+            .sales-card {
+                background-color: var(--primary-dark);
+                color: white;
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            }
+            
+            .customer-info-card {
+                background-color: var(--secondary-cream);
+                border: 2px solid var(--primary-dark);
+                border-radius: 1rem;
+                box-shadow: 0 4px 6px -1px rgba(20, 107, 51, 0.1), 0 2px 4px -2px rgba(20, 107, 51, 0.06);
+            }
+            
+            .content-section {
+                display: none;
+            }
+            
+            .content-section.active {
+                display: block;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="sidebar-backdrop" class="sidebar-backdrop md:hidden"></div>
+        
+        <aside id="admin-sidebar" class="text-primary-dark">
+            <div class="p-6 text-center border-b-2 border-primary-dark/20 mb-8">
+                <div class="inline-block">
+                    <img src="logo.png" alt="Jessie Cane Logo" class="h-16 w-16 object-contain mx-auto" onerror="this.style.display='none'">
+                </div>
+                <h1 class="logo-text text-3xl font-extrabold mt-3">Jessie Cane Admin</h1>
+            </div>
+
+            <nav class="space-y-2">
+                <a href="#" class="sidebar-link active" data-section="dashboard">
+                    <i class="fa-solid fa-gauge-high w-6 text-center"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="sidebar-link" data-section="menu-management">
+                    <i class="fa-solid fa-utensils w-6 text-center"></i>
+                    <span>Menu Management</span>
+                </a>
+                <a href="#" class="sidebar-link" data-section="account-management">
+                    <i class="fa-solid fa-users w-6 text-center"></i>
+                    <span>Account Management</span>
+                </a>
+                <a href="#" class="sidebar-link" data-section="sales-report">
+                    <i class="fa-solid fa-chart-line w-6 text-center"></i>
+                    <span>Sales Report</span>
+                </a>
+                <a href="#" class="sidebar-link" data-section="settings">
+                    <i class="fa-solid fa-gear w-6 text-center"></i>
+                    <span>Settings</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div class="main-content-wrapper">
+            <div class="main-container p-4 md:p-8 lg:p-10 rounded-3xl shadow-2xl">
+                
+                <header class="flex justify-between items-center mb-6 md:mb-10 pb-4 border-b-4 border-juice-highlight">
+                    <div class="flex items-center">
+                        <button id="sidebar-toggle" class="md:hidden text-primary-dark mr-4 p-2 rounded hover:bg-secondary-cream">
+                            <i class="fa-solid fa-bars text-2xl"></i>
+                        </button>
+                        <h2 id="page-title" class="text-3xl md:text-4xl font-extrabold text-primary-dark">Dashboard</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-3 md:space-x-4">
+                        <span id="welcome-message" class="text-sm md:text-lg text-accent-dark hidden sm:inline">Welcome, Admin!</span>
+                        <i class="fa-solid fa-bell text-xl md:text-2xl text-primary-dark cursor-pointer hover:text-juice-highlight"></i>
+                        <i id="logout-btn" class="fa-solid fa-right-from-bracket text-xl md:text-2xl text-red-600 cursor-pointer hover:text-red-800"></i>
+                    </div>
+                </header>
+                
+                <!-- Dashboard Section -->
+                <section id="dashboard" class="content-section active">
+                    <div class="mb-6 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+                        <p class="font-bold">Admin Dashboard</p>
+                        <p>Post announcements and view system overview</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Announcement Form -->
+                        <div class="dashboard-card p-6">
+                            <h3 class="text-2xl font-bold text-primary-dark mb-4">Post Announcement</h3>
+                            <form id="announcement-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Announcement Title:</label>
+                                    <input type="text" id="announcement-title" placeholder="Enter announcement title" 
+                                        class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight">
+                                </div>
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Announcement Content:</label>
+                                    <textarea id="announcement-content" rows="4" placeholder="Enter announcement content" 
+                                        class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight"></textarea>
+                                </div>
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Upload Image (Optional):</label>
+                                    <input type="file" id="announcement-image" accept="image/*" 
+                                        class="w-full px-4 py-2 text-primary-dark bg-secondary-cream rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight cursor-pointer">
+                                </div>
+                                <button type="submit" class="action-btn bg-primary-dark text-white px-4 py-2 rounded-lg hover:bg-accent-dark w-full">
+                                    <i class="fa-solid fa-bullhorn mr-2"></i> Post Announcement
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Recent Announcements -->
+                        <div class="dashboard-card p-6">
+                            <h3 class="text-2xl font-bold text-primary-dark mb-4">Recent Announcements</h3>
+                            <div id="announcements-list" class="space-y-4 max-h-96 overflow-y-auto">
+                                <div class="bg-white p-4 rounded-lg border border-primary-dark">
+                                    <h4 class="font-bold text-lg text-primary-dark">Welcome to Jessie Cane!</h4>
+                                    <p class="text-gray-700 mt-2">We're excited to have you as part of our team. Please familiarize yourself with the system.</p>
+                                    <p class="text-gray-500 text-sm mt-2">Posted on: 2025-10-15</p>
+                                </div>
+                                <div class="bg-white p-4 rounded-lg border border-primary-dark">
+                                    <h4 class="font-bold text-lg text-primary-dark">New Menu Items Available</h4>
+                                    <p class="text-gray-700 mt-2">We've added three new juice flavors to our menu. Check them out!</p>
+                                    <p class="text-gray-500 text-sm mt-2">Posted on: 2025-10-15</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Stats -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="sales-card p-6 text-center">
+                            <h4 class="text-xl font-bold mb-4">Total Users</h4>
+                            <p class="text-4xl font-bold">127</p>
+                        </div>
+                        <div class="sales-card p-6 text-center">
+                            <h4 class="text-xl font-bold mb-4">Menu Items</h4>
+                            <p class="text-4xl font-bold">24</p>
+                        </div>
+                        <div class="sales-card p-6 text-center">
+                            <h4 class="text-xl font-bold mb-4">Today's Orders</h4>
+                            <p class="text-4xl font-bold">42</p>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Menu Management Section -->
+                <section id="menu-management" class="content-section">
+                    <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mb-8 md:mb-10">
+                        <button id="add-item-btn" class="cta-button bg-primary-dark text-white px-4 py-3 sm:px-6 sm:py-3 rounded-full font-bold shadow-lg hover:bg-accent-dark transition duration-300 text-base sm:text-xl flex-grow">
+                            <i class="fa-solid fa-plus-circle mr-2"></i>
+                            Add New Item
+                        </button>
+                        
+                        <button id="edit-menu-btn" class="cta-button bg-secondary-cream text-primary-dark px-4 py-3 sm:px-6 sm:py-3 rounded-full font-bold shadow-lg hover:bg-juice-highlight transition duration-300 text-base sm:text-xl border-2 border-primary-dark flex-grow">
+                            <i class="fa-solid fa-pen-to-square mr-2"></i>
+                            Edit Current Menu
+                        </button>
+                    </div>
+
+                    <section class="mb-12">
+                        <h3 class="text-2xl md:text-3xl font-extrabold text-primary-dark mb-6 text-shadow-juice border-b border-primary-dark/20 pb-2">Current Menu Items View</h3>
+                        
+                        <div id="menu-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                            <!-- Menu items will be dynamically inserted here -->
+                        </div>
+                        
+                        <p id="no-menu-message" class="text-center text-primary-dark/60 mt-8 text-lg hidden">
+                            No menu items available yet. Please click "Add New Item" to begin!
+                        </p>
+                    </section>
+                </section>
+                
+                <!-- Account Management Section -->
+                <section id="account-management" class="content-section">
+                    <div class="mb-6 p-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700">
+                        <p class="font-bold">Account Management</p>
+                        <p>Create, edit, and delete user accounts (Cashier and Customer)</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <!-- Create Account Form -->
+                        <div class="dashboard-card p-6">
+                            <h3 class="text-2xl font-bold text-primary-dark mb-4">Create New Account</h3>
+                            <form id="create-account-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Username:</label>
+                                    <input type="text" id="account-username" placeholder="Enter username" required
+                                        class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight">
+                                </div>
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Password:</label>
+                                    <input type="password" id="account-password" placeholder="Enter password" required
+                                        class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight">
+                                </div>
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Role:</label>
+                                    <select id="account-role" class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight">
+                                        <option value="Customer">Customer</option>
+                                        <option value="Cashier">Cashier</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="action-btn bg-primary-dark text-white px-4 py-2 rounded-lg hover:bg-accent-dark w-full">
+                                    <i class="fa-solid fa-user-plus mr-2"></i> Create Account
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Account List -->
+                        <div class="dashboard-card p-6">
+                            <h3 class="text-2xl font-bold text-primary-dark mb-4">User Accounts</h3>
+                            <div class="overflow-x-auto">
+                                <table class="dashboard-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Username</th>
+                                            <th>Role</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="accounts-list">
+                                        <!-- Accounts will be populated here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Settings Section -->
+                <section id="settings" class="content-section">
+                    <div class="mb-6 p-4 bg-green-100 border-l-4 border-green-500 text-green-700">
+                        <p class="font-bold">System Settings</p>
+                        <p>Configure system preferences and options</p>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                        <!-- General Settings -->
+                        <div class="dashboard-card p-6">
+                            <h3 class="text-2xl font-bold text-primary-dark mb-4">General Settings</h3>
+                            <form id="general-settings-form" class="space-y-4">
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Business Name:</label>
+                                    <input type="text" id="business-name" value="Jessie Cane Juicebar" 
+                                        class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight">
+                                </div>
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Default Currency:</label>
+                                    <select id="default-currency" class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight">
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="PHP" selected>PHP (₱)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Tax Rate (%):</label>
+                                    <input type="number" id="tax-rate" value="8.5" step="0.1" min="0" max="30"
+                                        class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight">
+                                </div>
+                                <button type="submit" class="action-btn bg-primary-dark text-white px-4 py-2 rounded-lg hover:bg-accent-dark w-full">
+                                    <i class="fa-solid fa-save mr-2"></i> Save General Settings
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Notification Settings -->
+                        <div class="dashboard-card p-6">
+                            <h3 class="text-2xl font-bold text-primary-dark mb-4">Notification Settings</h3>
+                            <form id="notification-settings-form" class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <label class="text-primary-dark font-bold">Low Stock Notifications:</label>
+                                    <input type="checkbox" id="low-stock-notifications" checked class="h-5 w-5 text-primary-dark">
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-primary-dark font-bold">New Order Notifications:</label>
+                                    <input type="checkbox" id="new-order-notifications" checked class="h-5 w-5 text-primary-dark">
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <label class="text-primary-dark font-bold">Daily Sales Report:</label>
+                                    <input type="checkbox" id="daily-sales-report" class="h-5 w-5 text-primary-dark">
+                                </div>
+                                <div>
+                                    <label class="block text-primary-dark font-bold mb-2">Notification Email:</label>
+                                    <input type="email" id="notification-email" value="admin@jessiecane.com" 
+                                        class="w-full px-4 py-2 rounded-lg border-2 border-primary-dark focus:outline-none focus:ring-2 focus:ring-juice-highlight">
+                                </div>
+                                <button type="submit" class="action-btn bg-primary-dark text-white px-4 py-2 rounded-lg hover:bg-accent-dark w-full">
+                                    <i class="fa-solid fa-bell mr-2"></i> Save Notification Settings
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- System Information -->
+                    <div class="dashboard-card p-6 mt-8">
+                        <h3 class="text-2xl font-bold text-primary-dark mb-4">System Information</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white p-4 rounded-lg border border-primary-dark">
+                                <p class="font-bold text-primary-dark">System Version</p>
+                                <p>v2.1.0</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-primary-dark">
+                                <p class="font-bold text-primary-dark">Last Backup</p>
+                                <p id="last-backup">2023-11-10 02:00 AM</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-primary-dark">
+                                <p class="font-bold text-primary-dark">Database Size</p>
+                                <p id="db-size">24.7 MB</p>
+                            </div>
+                            <div class="bg-white p-4 rounded-lg border border-primary-dark">
+                                <p class="font-bold text-primary-dark">Active Users</p>
+                                <p id="active-users">18</p>
+                            </div>
+                        </div>
+                        <div class="mt-6 flex flex-wrap gap-4">
+                            <button id="backup-btn" class="action-btn bg-primary-dark text-white px-4 py-2 rounded-lg hover:bg-accent-dark">
+                                <i class="fa-solid fa-download mr-2"></i> Backup Database
+                            </button>
+                            <button id="clear-cache-btn" class="action-btn bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600">
+                                <i class="fa-solid fa-rotate mr-2"></i> Clear Cache
+                            </button>
+                            <button id="clear-logs-btn" class="action-btn bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                                <i class="fa-solid fa-trash mr-2"></i> Clear Logs
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Sales Report Section (embeds cashier for admin monitoring) -->
+                <section id="sales-report" class="content-section">
+                    <div class="mb-6 p-4 bg-indigo-100 border-l-4 border-indigo-500 text-indigo-700">
+                        <p class="font-bold">Sales Report</p>
+                        <p>Monitor cashier orders and sales in real-time.</p>
+                    </div>
+
+                    <div class="dashboard-card p-4">
+                        <h3 class="text-2xl font-bold text-primary-dark mb-4">Cashier Dashboard</h3>
+                        <iframe src="cashier.html" title="Cashier Dashboard" style="width:100%; height:70vh; border:0; border-radius:12px;" sandbox="allow-same-origin allow-scripts allow-forms"></iframe>
+                        <p class="text-sm text-primary-dark/70 mt-3">Note: Approve/Cancel actions will affect live data. Use with caution.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Menu Modal -->
+        <div id="menu-modal" class="modal">
+            <div class="modal-content bg-white p-6 md:p-8 border-4 border-primary-dark shadow-2xl rounded-2xl">
+                <div class="flex justify-between items-center mb-6 border-b border-primary-dark/20 pb-4">
+                    <h2 class="text-3xl font-bold text-primary-dark text-shadow-juice" id="modal-title">Menu Item</h2>
+                    <button id="close-modal-btn" class="text-primary-dark hover:text-red-600 text-3xl font-bold">&times;</button>
+                </div>
+                
+                <form id="add-item-form" class="space-y-4 mb-8" data-editing-id="-1">
+                    <input type="hidden" id="item-image-data" value=""> 
+
+                    <input type="text" id="item-name" placeholder="Item Name (e.g., Lychee Cane)" required
+                        class="w-full px-4 py-3 rounded-xl border-2 border-primary-dark focus:outline-none focus:ring-4 focus:ring-juice-highlight">
+                    
+                    <textarea id="item-description" placeholder="Description (e.g., Tropical sweetness meets cane juice)" required
+                        class="w-full px-4 py-3 rounded-xl border-2 border-primary-dark focus:outline-none focus:ring-4 focus:ring-juice-highlight" rows="3"></textarea>
+                    
+                    <!-- Price Inputs for Each Size -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-primary-dark font-bold mb-2">Regular Size Price (₱):</label>
+                            <input type="number" id="item-price-regular" placeholder="0.00" step="0.01" min="0" required
+                                class="w-full px-4 py-3 rounded-xl border-2 border-primary-dark focus:outline-none focus:ring-4 focus:ring-juice-highlight">
+                        </div>
+                        <div>
+                            <label class="block text-primary-dark font-bold mb-2">Tall Size Price (₱):</label>
+                            <input type="number" id="item-price-tall" placeholder="0.00" step="0.01" min="0" required
+                                class="w-full px-4 py-3 rounded-xl border-2 border-primary-dark focus:outline-none focus:ring-4 focus:ring-juice-highlight">
+                        </div>
+                    </div>
+                    
+                    <label class="block text-primary-dark font-bold pt-2" id="image-label">Upload Item Photo:</label>
+                    <input type="file" id="item-image" accept="image/*"
+                        class="w-full px-4 py-2 text-primary-dark bg-secondary-cream rounded-xl border-2 border-primary-dark focus:outline-none focus:ring-4 focus:ring-juice-highlight cursor-pointer">
+                    
+                    <button type="submit" id="save-item-btn" class="w-full cta-button bg-juice-highlight text-primary-dark px-8 py-3 rounded-full text-xl font-bold shadow-xl hover:bg-secondary-cream transition duration-300 border-2 border-primary-dark">
+                        <i class="fa-solid fa-save mr-2"></i> Save Item
+                    </button>
+
+                    <button type="button" id="delete-item-on-edit-btn" class="w-full cta-button bg-red-600 text-white px-8 py-3 rounded-full text-xl font-bold shadow-xl hover:bg-red-700 transition duration-300 border-2 border-red-800 hidden">
+                        <i class="fa-solid fa-trash-can mr-2"></i> Delete This Item
+                    </button>
+                </form>
+
+                <div id="current-menu-container" class="bg-secondary-cream/70 backdrop-blur-sm p-6 rounded-3xl shadow-inner border-4 border-primary-dark" style="display: none;">
+                    <h3 class="text-2xl font-bold text-primary-dark mb-4 text-shadow-juice">Current Menu List</h3>
+                    <ul id="menu-list" class="space-y-4">
+                        <!-- Menu items for editing will be populated here -->
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            // Authentication check
+            document.addEventListener('DOMContentLoaded', function() {
+                // Check if user is logged in and is admin (case-insensitive role check)
+                const isLoggedIn = localStorage.getItem("isLoggedIn");
+                const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+                const isAdmin = currentUser && typeof currentUser.role === 'string' && currentUser.role.toLowerCase() === 'admin';
+
+                if (!isLoggedIn || isLoggedIn !== "true" || !isAdmin) {
+                    alert('Access denied. Please log in as an Admin.');
+                    window.location.href = 'login.html';
+                    return;
+                }
+
+                // If authentication passes, initialize the admin dashboard
+                initializeAdminDashboard();
+            });
+
+            function initializeAdminDashboard() {
+                // DOM Elements
+                const sidebar = document.getElementById('admin-sidebar');
+                const sidebarToggle = document.getElementById('sidebar-toggle');
+                const sidebarBackdrop = document.getElementById('sidebar-backdrop');
+                const pageTitle = document.getElementById('page-title');
+                const welcomeMessage = document.getElementById('welcome-message');
+                const logoutBtn = document.getElementById('logout-btn');
+                const sidebarLinks = document.querySelectorAll('.sidebar-link');
+                const contentSections = document.querySelectorAll('.content-section');
+                
+                // Menu Management Elements
+                const addItemBtn = document.getElementById('add-item-btn');
+                const editMenuBtn = document.getElementById('edit-menu-btn');
+                const modalTitle = document.getElementById('modal-title');
+                const menuModal = document.getElementById('menu-modal');
+                const closeModalBtn = document.getElementById('close-modal-btn');
+                const addItemForm = document.getElementById('add-item-form');
+                const menuContainer = document.getElementById('current-menu-container');
+                
+                const itemNameInput = document.getElementById('item-name');
+                const itemDescInput = document.getElementById('item-description');
+                const itemImageInput = document.getElementById('item-image');
+                const itemImageDataInput = document.getElementById('item-image-data'); 
+                const saveItemBtn = document.getElementById('save-item-btn');
+                const deleteItemOnEditBtn = document.getElementById('delete-item-on-edit-btn');
+
+                const menuList = document.getElementById('menu-list');
+                const menuGrid = document.getElementById('menu-grid');
+                const noMenuMessage = document.getElementById('no-menu-message');
+                
+                // Account Management Elements
+                const createAccountForm = document.getElementById('create-account-form');
+                const accountsList = document.getElementById('accounts-list');
+                
+                // Dashboard Elements
+                const announcementForm = document.getElementById('announcement-form');
+                const announcementsList = document.getElementById('announcements-list');
+                
+                // Settings Elements
+                const generalSettingsForm = document.getElementById('general-settings-form');
+                const notificationSettingsForm = document.getElementById('notification-settings-form');
+                const backupBtn = document.getElementById('backup-btn');
+                const clearCacheBtn = document.getElementById('clear-cache-btn');
+                const clearLogsBtn = document.getElementById('clear-logs-btn');
+                
+                // Storage Keys
+                const MENU_STORAGE_KEY = "jessieCaneMenu";
+                const ACCOUNTS_STORAGE_KEY = "jessieCaneAccounts";
+                const ANNOUNCEMENTS_STORAGE_KEY = "jessieCaneAnnouncements";
+                const SETTINGS_STORAGE_KEY = "jessieCaneSettings";
+                const CUSTOMER_MENU_KEY = "jessie_menu";
+                
+                const DEFAULT_IMAGE = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FFD966'/><text x='50' y='55' font-size='30' fill='%23146B33' text-anchor='middle'>JC</text></svg>";
+
+                // Canonical default menu items (12 items provided by admin)
+                const DEFAULT_MENU_ITEMS = [
+                    { id: 1, name: 'Pure Sugarcane', description: 'Freshly pressed sugarcane juice in its purest form — naturally sweet, refreshing, and energizing with no added sugar or preservatives.', priceRegular: 79, priceTall: 109, img: 'images/pure-sugarcane.png' },
+                    { id: 2, name: 'Calamansi Cane', description: 'A zesty twist on classic sugarcane juice, blended with the tangy freshness of calamansi for a perfectly balanced sweet and citrusy drink.', priceRegular: 89, priceTall: 119, img: 'images/calamansi-cane.png' },
+                    { id: 3, name: 'Lemon Cane', description: 'Freshly squeezed lemon combined with pure sugarcane juice, creating a crisp and revitalizing drink that awakens your senses.', priceRegular: 89, priceTall: 119, img: 'images/lemon-cane.png' },
+                    { id: 4, name: 'Yakult Cane', description: 'A delightful mix of sugarcane juice and Yakult — smooth, creamy, and packed with probiotics for a unique sweet-tangy flavor.', priceRegular: 89, priceTall: 119, img: 'images/yakult-cane.png' },
+                    { id: 5, name: 'Calamansi Yakult Cane', description: 'A refreshing blend of calamansi, Yakult, and sugarcane juice — the perfect harmony of sweet, sour, and creamy goodness.', priceRegular: 99, priceTall: 129, img: 'images/calamansi-yakult-cane.png' },
+                    { id: 6, name: 'Lemon Yakult Cane', description: 'Experience a fusion of lemon’s zesty tang with Yakult’s smooth creaminess, all complemented by naturally sweet sugarcane.', priceRegular: 99, priceTall: 129, img: 'images/lemon-yakult-cane.png' },
+                    { id: 7, name: 'Lychee Cane', description: 'A fragrant and fruity treat made with the exotic sweetness of lychee and the crisp freshness of sugarcane juice.', priceRegular: 99, priceTall: 129, img: 'images/lychee-cane.png' },
+                    { id: 8, name: 'Orange Cane', description: 'Fresh orange juice blended with pure sugarcane extract for a bright, citrusy burst of sunshine in every sip.', priceRegular: 109, priceTall: 139, img: 'images/orange-cane.png' },
+                    { id: 9, name: 'Passion Fruit Cane', description: 'A tropical blend of tangy passion fruit and naturally sweet sugarcane — vibrant, juicy, and irresistibly refreshing.', priceRegular: 119, priceTall: 149, img: 'images/passion-fruit-cane.png' },
+                    { id: 10, name: 'Watermelon Cane', description: 'A hydrating fusion of freshly pressed watermelon and sugarcane juice, offering a light, cooling sweetness that’s perfect for hot days.', priceRegular: 119, priceTall: 149, img: 'images/watermelon-cane.png' },
+                    { id: 11, name: 'Strawberry Yogurt Cane', description: 'Creamy strawberry yogurt meets sweet sugarcane for a smooth, fruity, and indulgent drink that’s both refreshing and satisfying.', priceRegular: 119, priceTall: 149, img: 'images/strawberry-yogurt-cane.png' },
+                    { id: 12, name: 'Dragon Fruit Cane', description: 'A vibrant blend of dragon fruit and pure sugarcane juice — visually stunning, naturally sweet, and loaded with antioxidants.', priceRegular: 119, priceTall: 149, img: 'images/dragon-fruit-cane.png' }
+                ];
+
+                // Set welcome message
+                const sessionUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
+                if (sessionUser.name) {
+                    welcomeMessage.textContent = `Welcome, ${sessionUser.name}!`;
+                    welcomeMessage.classList.remove('hidden');
+                }
+
+                // --- SYNC MENU TO CUSTOMER DASHBOARD ---
+                function syncMenuToCustomerDashboard() {
+        const adminMenu = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || "[]");
+
+        // Build a merged menu: start from canonical defaults, ensure ids, overlay admin items by id first, then by name; append new admin items with new ids
+        const merged = DEFAULT_MENU_ITEMS.slice().map((item, idx) => Object.assign({}, item, { id: item.id || idx + 1 }));
+
+        // build lookup by id and by name
+        const byId = {};
+        const byName = {};
+        merged.forEach(it => {
+            if (it.id) byId[it.id] = it;
+            if (it.name) byName[(it.name || '').toLowerCase()] = it;
+        });
+
+        // find current max id to assign new ids
+        let maxId = merged.reduce((m, it) => Math.max(m, (it.id || 0)), 0);
+
+        (Array.isArray(adminMenu) ? adminMenu : []).forEach(aItem => {
+            const finalImage = aItem.image || aItem.img || DEFAULT_IMAGE;
+            const migratedRegular = (typeof aItem.priceRegular === 'number') ? aItem.priceRegular : (parseFloat(aItem.priceRegular) || parseFloat(aItem.priceSmall) || 0);
+            const migratedTall = (typeof aItem.priceTall === 'number') ? aItem.priceTall : (parseFloat(aItem.priceTall) || parseFloat(aItem.priceMedium) || parseFloat(aItem.priceLarge) || migratedRegular);
+
+            const normalized = {
+                name: aItem.name || 'Unnamed',
+                desc: aItem.description || aItem.desc || aItem.description || '',
+                priceRegular: Number(migratedRegular || 0),
+                priceTall: Number(migratedTall || migratedRegular || 0),
+                img: finalImage
+            };
+
+            // prefer id-based overlay
+            if (aItem.id && byId[aItem.id]) {
+                const existing = byId[aItem.id];
+                Object.assign(existing, normalized);
+            } else if (aItem.id) {
+                // id present but new - add it
+                normalized.id = aItem.id;
+                merged.push(normalized);
+                byId[normalized.id] = normalized;
+                byName[(normalized.name||'').toLowerCase()] = normalized;
+                maxId = Math.max(maxId, normalized.id || 0);
+            } else if (aItem.name && byName[(aItem.name||'').toLowerCase()]) {
+                // match by name
+                const existing = byName[(aItem.name||'').toLowerCase()];
+                Object.assign(existing, normalized);
+            } else {
+                // new item - assign id
+                maxId++;
+                normalized.id = maxId;
+                merged.push(normalized);
+                byId[normalized.id] = normalized;
+                byName[(normalized.name||'').toLowerCase()] = normalized;
+            }
+        });
+
+        // Ensure every item has a stable numeric id (preserve existing ids where present)
+        const finalForCustomer = merged.map(it => {
+            if (!it.id) {
+                maxId++;
+                it.id = maxId;
+            }
+            return it;
+        });
+
+        // Persist merged arrays back to admin storage and customer storage (identical arrays)
+        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(finalForCustomer));
+        localStorage.setItem(CUSTOMER_MENU_KEY, JSON.stringify(finalForCustomer));
+
+        alert(`Menu updated and synced to customer dashboard. ${finalForCustomer.length} items available.`);
+    }
+
+
+                // Update menu and sync
+                function updateMenuAndSync() {
+                    renderMainGrid();
+                    renderModalList();
+                    syncMenuToCustomerDashboard();
+                }
+
+                // Logout functionality
+                logoutBtn.addEventListener('click', () => {
+                    if (confirm('Are you sure you want to log out?')) {
+                        localStorage.removeItem("isLoggedIn");
+                        localStorage.removeItem("currentUser");
+                        window.location.href = 'login.html';
+                    }
+                });
+
+                // --- NAVIGATION LOGIC ---
+                function switchSection(sectionId) {
+                    // Update active nav link
+                    sidebarLinks.forEach(link => {
+                        if (link.getAttribute('data-section') === sectionId) {
+                            link.classList.add('active');
+                        } else {
+                            link.classList.remove('active');
+                        }
+                    });
+                    
+                    // Show active section
+                    contentSections.forEach(section => {
+                        if (section.id === sectionId) {
+                            section.classList.add('active');
+                        } else {
+                            section.classList.remove('active');
+                        }
+                    });
+                    
+                    // Update page title
+                    const sectionTitles = {
+                        'dashboard': 'Dashboard',
+                        'menu-management': 'Menu Management',
+                        'account-management': 'Account Management',
+                        'settings': 'System Settings',
+                        'sales-report': 'Sales Report'
+                    };
+                    pageTitle.textContent = sectionTitles[sectionId];
+                    
+                    // Load section-specific data
+                    if (sectionId === 'menu-management') {
+                        renderMainGrid();
+                    } else if (sectionId === 'account-management') {
+                        renderAccountsList();
+                    } else if (sectionId === 'sales-report') {
+                        // no additional render required; iframe loads cashier
+                    }
+                }
+
+                // Add event listeners to nav links
+                sidebarLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const sectionId = link.getAttribute('data-section');
+                        switchSection(sectionId);
+                        
+                        // Close sidebar on mobile
+                        if (window.innerWidth < 768) {
+                            toggleSidebar();
+                        }
+                    });
+                });
+
+                // --- MOBILE SIDEBAR TOGGLE LOGIC ---
+                const toggleSidebar = () => {
+                    sidebar.classList.toggle('open');
+                    sidebarBackdrop.classList.toggle('show');
+                }
+
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', toggleSidebar);
+                }
+                if (sidebarBackdrop) {
+                    sidebarBackdrop.addEventListener('click', toggleSidebar);
+                }
+
+                // --- DASHBOARD FUNCTIONALITY ---
+                if (announcementForm) {
+                    announcementForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const title = document.getElementById('announcement-title').value;
+                        const content = document.getElementById('announcement-content').value;
+                        
+                        if (title && content) {
+                            const announcement = {
+                                title,
+                                content,
+                                date: new Date().toLocaleDateString()
+                            };
+                            
+                            // Save to localStorage
+                            const announcements = JSON.parse(localStorage.getItem(ANNOUNCEMENTS_STORAGE_KEY) || '[]');
+                            announcements.unshift(announcement);
+                            localStorage.setItem(ANNOUNCEMENTS_STORAGE_KEY, JSON.stringify(announcements));
+                            
+                            // Update UI
+                            renderAnnouncements();
+                            alert('Announcement posted successfully!');
+                            announcementForm.reset();
+                        } else {
+                            alert('Please fill in both title and content.');
+                        }
+                    });
+                }
+
+                function renderAnnouncements() {
+                    if (!announcementsList) return;
+                    
+                    const announcements = JSON.parse(localStorage.getItem(ANNOUNCEMENTS_STORAGE_KEY) || '[]');
+                    announcementsList.innerHTML = '';
+                    
+                    if (announcements.length === 0) {
+                        announcementsList.innerHTML = '<p class="text-center text-gray-500 py-4">No announcements yet.</p>';
+                    } else {
+                        announcements.forEach(announcement => {
+                            const announcementEl = document.createElement('div');
+                            announcementEl.className = 'bg-white p-4 rounded-lg border border-primary-dark';
+                            announcementEl.innerHTML = `
+                                <h4 class="font-bold text-lg text-primary-dark">${announcement.title}</h4>
+                                <p class="text-gray-700 mt-2">${announcement.content}</p>
+                                <p class="text-gray-500 text-sm mt-2">Posted on: ${announcement.date}</p>
+                            `;
+                            announcementsList.appendChild(announcementEl);
+                        });
+                    }
+                }
+
+                // --- ACCOUNT MANAGEMENT FUNCTIONALITY ---
+                if (createAccountForm) {
+                    createAccountForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const username = document.getElementById('account-username').value;
+                        const password = document.getElementById('account-password').value;
+                        const role = document.getElementById('account-role').value;
+                        
+                        if (username && password) {
+                            // Check if username already exists
+                            const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || '[]');
+                            const existingUser = accounts.find(acc => acc.username === username);
+                            
+                            if (existingUser) {
+                                alert('Username already exists. Please choose a different username.');
+                                return;
+                            }
+                            
+                            // Create new account
+                            const newAccount = {
+                                username,
+                                password,
+                                role
+                            };
+                            
+                            accounts.push(newAccount);
+                            localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+                            
+                            // Update UI
+                            renderAccountsList();
+                            alert(`${role} account created successfully!`);
+                            createAccountForm.reset();
+                        } else {
+                            alert('Please fill in all fields.');
+                        }
+                    });
+                }
+
+                function renderAccountsList() {
+                    if (!accountsList) return;
+                    
+                    const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || '[]');
+                    accountsList.innerHTML = '';
+                    
+                    if (accounts.length === 0) {
+                        accountsList.innerHTML = '<tr><td colspan="3" class="text-center py-4">No accounts found.</td></tr>';
+                    } else {
+                        accounts.forEach((account, index) => {
+                            const row = document.createElement('tr');
+                            row.innerHTML = `
+                                <td>${account.username}</td>
+                                <td>${account.role}</td>
+                                <td>
+                                    <button class="edit-account-btn action-btn bg-primary-dark text-white text-sm px-3 py-1 rounded-lg hover:bg-accent-dark mr-2" data-index="${index}">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </button>
+                                    <button class="delete-account-btn action-btn bg-red-600 text-white text-sm px-3 py-1 rounded-lg hover:bg-red-700" data-index="${index}">
+                                        <i class="fa-solid fa-trash"></i> Delete
+                                    </button>
+                                </td>
+                            `;
+                            accountsList.appendChild(row);
+                        });
+                        
+                        // Add event listeners to action buttons
+                        document.querySelectorAll('.edit-account-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const index = parseInt(this.getAttribute('data-index'));
+                                editAccount(index);
+                            });
+                        });
+                        
+                        document.querySelectorAll('.delete-account-btn').forEach(btn => {
+                            btn.addEventListener('click', function() {
+                                const index = parseInt(this.getAttribute('data-index'));
+                                deleteAccount(index);
+                            });
+                        });
+                    }
+                }
+
+                function editAccount(index) {
+                    const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || '[]');
+                    const account = accounts[index];
+                    
+                    const newUsername = prompt('Enter new username:', account.username);
+                    if (newUsername && newUsername !== account.username) {
+                        // Check if username already exists
+                        const usernameExists = accounts.some(acc => acc.username === newUsername && accounts.indexOf(acc) !== index);
+                        if (usernameExists) {
+                            alert('Username already exists. Please choose a different username.');
+                            return;
+                        }
+                        
+                        account.username = newUsername;
+                    }
+                    
+                    const newRole = prompt('Enter new role (Customer/Cashier):', account.role);
+                    if (newRole && (newRole === 'Customer' || newRole === 'Cashier')) {
+                        account.role = newRole;
+                    }
+                    
+                    localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+                    renderAccountsList();
+                    alert('Account updated successfully!');
+                }
+
+                function deleteAccount(index) {
+                    const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || '[]');
+                    const account = accounts[index];
+                    
+                    if (confirm(`Are you sure you want to delete the account: "${account.username}"?`)) {
+                        accounts.splice(index, 1);
+                        localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+                        renderAccountsList();
+                        alert('Account deleted successfully!');
+                    }
+                }
+
+                // --- SETTINGS FUNCTIONALITY ---
+                if (generalSettingsForm) {
+                    generalSettingsForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const businessName = document.getElementById('business-name').value;
+                        const defaultCurrency = document.getElementById('default-currency').value;
+                        const taxRate = document.getElementById('tax-rate').value;
+                        
+                        const settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || '{}');
+                        settings.general = {
+                            businessName,
+                            defaultCurrency,
+                            taxRate: parseFloat(taxRate)
+                        };
+                        
+                        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+                        alert('General settings saved successfully!');
+                    });
+                }
+
+                if (notificationSettingsForm) {
+                    notificationSettingsForm.addEventListener('submit', (e) => {
+                        e.preventDefault();
+                        const lowStockNotifications = document.getElementById('low-stock-notifications').checked;
+                        const newOrderNotifications = document.getElementById('new-order-notifications').checked;
+                        const dailySalesReport = document.getElementById('daily-sales-report').checked;
+                        const notificationEmail = document.getElementById('notification-email').value;
+                        
+                        const settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || '{}');
+                        settings.notifications = {
+                            lowStockNotifications,
+                            newOrderNotifications,
+                            dailySalesReport,
+                            notificationEmail
+                        };
+                        
+                        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+                        alert('Notification settings saved successfully!');
+                    });
+                }
+
+                // System buttons functionality
+                if (backupBtn) {
+                    backupBtn.addEventListener('click', () => {
+                        alert('Database backup initiated!');
+                        // Simulate backup process
+                        setTimeout(() => {
+                            document.getElementById('last-backup').textContent = new Date().toLocaleString();
+                            alert('Backup completed successfully!');
+                        }, 1000);
+                    });
+                }
+
+                if (clearCacheBtn) {
+                    clearCacheBtn.addEventListener('click', () => {
+                        if (confirm('Are you sure you want to clear the cache?')) {
+                            alert('Cache cleared successfully!');
+                        location.reload();
+                        }
+                    });
+                }
+
+                if (clearLogsBtn) {
+                    clearLogsBtn.addEventListener('click', () => {
+                        if (confirm('Are you sure you want to clear all logs?')) {
+                            alert('Logs cleared successfully!');
+                        }
+                    });
+                }
+
+                // Load saved settings
+                function loadSettings() {
+                    const settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || '{}');
+                    
+                    if (settings.general) {
+                        document.getElementById('business-name').value = settings.general.businessName || 'Jessie Cane Juicebar';
+                        document.getElementById('default-currency').value = settings.general.defaultCurrency || 'PHP';
+                        document.getElementById('tax-rate').value = settings.general.taxRate || 8.5;
+                    }
+                    
+                    if (settings.notifications) {
+                        document.getElementById('low-stock-notifications').checked = settings.notifications.lowStockNotifications || false;
+                        document.getElementById('new-order-notifications').checked = settings.notifications.newOrderNotifications || false;
+                        document.getElementById('daily-sales-report').checked = settings.notifications.dailySalesReport || false;
+                        document.getElementById('notification-email').value = settings.notifications.notificationEmail || 'admin@jessiecane.com';
+                    }
+                }
+
+                // --- MENU MANAGEMENT FUNCTIONALITY ---
+
+                // Function to render menu items in the main grid
+                const renderMainGrid = () => {
+                    if (!menuGrid) return;
+                    
+                    // Prefer admin-stored menu; if empty, show defaults
+                    const stored = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
+                    const menuItems = (Array.isArray(stored) && stored.length > 0) ? stored : DEFAULT_MENU_ITEMS;
+                    menuGrid.innerHTML = '';
+                    
+                    if (menuItems.length === 0) {
+                        noMenuMessage.classList.remove('hidden');
+                    } else {
+                        noMenuMessage.classList.add('hidden');
+                        menuItems.forEach(item => {
+                            const card = document.createElement('div');
+                            const imageUrl = item.img || item.image || DEFAULT_IMAGE;
+                            
+                            card.className = 'menu-card p-6 rounded-3xl shadow-xl text-center transition-transform duration-300 hover:scale-[1.03] hover:shadow-2xl';
+                            
+                            card.innerHTML = `
+                                <img src="${imageUrl}" alt="${item.name}" class="w-24 h-24 object-cover rounded-full mx-auto mb-4 border-4 border-primary-dark shadow-md">
+                                <div class="mb-4">
+                                    <h3 class="text-3xl font-extrabold text-primary-dark mb-1 text-shadow-juice">${item.name}</h3>
+                                    <p class="text-accent-dark text-base">${item.description}</p>
+                                </div>
+                                <div class="text-center space-y-2">
+                                    <div class="bg-juice-highlight p-2 rounded-full shadow-inner border border-primary-dark">
+                                                    <p class="text-lg font-bold text-primary-dark">Regular: ₱${parseFloat(item.priceRegular||item.priceSmall||0).toFixed(2)}</p>
+                                    </div>
+                                    <div class="bg-juice-highlight p-2 rounded-full shadow-inner border border-primary-dark">
+                                        <p class="text-lg font-bold text-primary-dark">Tall: ₱${parseFloat(item.priceTall||item.priceMedium||item.priceLarge||item.priceSmall||0).toFixed(2)}</p>
+                                    </div>
+                                    <!-- Large size removed; show only Regular and Tall -->
+                                </div>
+                            `;
+                            menuGrid.appendChild(card);
+                        });
+                    }
+                };
+
+                // Function to render menu items in the modal list for editing
+                const renderModalList = () => {
+                    if (!menuList) return;
+                    // Prefer admin-stored menu; fallback to defaults so admin can edit defaults
+                    const stored = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
+                    const menuItems = (Array.isArray(stored) && stored.length > 0) ? stored : DEFAULT_MENU_ITEMS.slice();
+                    menuList.innerHTML = '';
+                    
+                    if (menuItems.length === 0) {
+                        menuList.innerHTML = '<p class="text-center text-primary-dark/80 pt-2 pb-1">No items have been added to the menu yet.</p>';
+                    } else {
+                        menuItems.forEach((item, index) => {
+                            const li = document.createElement('li');
+                            const imageUrl = item.img || item.image || DEFAULT_IMAGE;
+                            
+                            li.className = 'flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white p-3 rounded-xl shadow-md border border-accent-dark space-y-2 sm:space-y-0';
+                            
+                            li.innerHTML = `
+                                <div class="flex items-center flex-grow min-w-0">
+                                    <img src="${imageUrl}" alt="${item.name}" class="w-10 h-10 object-cover rounded-full mr-3 border border-primary-dark flex-shrink-0">
+                                    <div class="truncate min-w-0 flex-grow">
+                                        <h3 class="font-bold text-lg text-primary-dark truncate">${item.name}</h3>
+                                        <p class="text-gray-600 text-sm">₱${parseFloat(item.priceRegular||item.priceSmall||0).toFixed(2)}</p>
+                                    </div>
+                                </div>
+                                <div class="flex space-x-2 flex-shrink-0 w-full sm:w-auto justify-end">
+                                    <button class="edit-item-btn bg-primary-dark text-white text-sm px-3 py-1 rounded-full font-bold shadow-md hover:bg-accent-dark transition duration-300" data-id="${item.id}">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </button>
+                                    <button class="remove-item-btn bg-red-600 text-white text-sm px-3 py-1 rounded-full font-bold shadow-md hover:bg-red-700 transition duration-300" data-id="${item.id}">
+                                        <i class="fa-solid fa-trash-can"></i> Del
+                                    </button>
+                                </div>
+                            `;
+                            menuList.appendChild(li);
+                        });
+                    }
+                };
+
+                // Handles opening the modal for editing
+                const handleEdit = (id) => {
+                    const menuItems = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
+                    const item = menuItems.find(mi => Number(mi.id) === Number(id));
+                    const index = menuItems.findIndex(mi => Number(mi.id) === Number(id));
+
+                    modalTitle.textContent = "Edit Menu Item";
+                    addItemForm.style.display = 'block';
+                    menuContainer.style.display = 'none';
+                    
+                    // Set form data
+                    itemNameInput.value = item.name;
+                    itemDescInput.value = item.description;
+                    document.getElementById('item-price-regular').value = item.priceRegular || item.priceSmall || '';
+                    document.getElementById('item-price-tall').value = item.priceTall || item.priceMedium || item.priceLarge || '';
+                    itemImageDataInput.value = item.image || item.img || ''; 
+                    itemImageInput.value = ''; // Clear file input
+                    
+                    // Set up form for editing
+                    addItemForm.setAttribute('data-editing-id', id);
+                    saveItemBtn.innerHTML = '<i class="fa-solid fa-save mr-2"></i> Update Item';
+                    deleteItemOnEditBtn.style.display = 'block';
+                    deleteItemOnEditBtn.setAttribute('data-id', id);
+                    
+                    menuModal.style.display = 'flex';
+                }
+
+                // Handles deletion of an item
+                const handleDelete = (id) => {
+                    const menuItems = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
+                    const index = menuItems.findIndex(mi => Number(mi.id) === Number(id));
+                    if (index < 0) return;
+
+                    const removedName = menuItems[index].name;
+
+                    if (confirm(`Are you sure you want to delete the item: "${removedName}"?`)) {
+                        menuItems.splice(index, 1);
+                        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuItems));
+
+                        // Hide modal if deleting from the edit form or list view is active
+                        menuModal.style.display = 'none';
+
+                        alert(`"${removedName}" removed successfully.`);
+                        updateMenuAndSync();
+                    }
+                }
+
+                // Handles form submission (Add or Edit)
+                const handleFormSubmit = (e) => {
+                    e.preventDefault();
+                    
+                    const editingId = addItemForm.getAttribute('data-editing-id');
+                    const isEditing = editingId && editingId !== '-1';
+                    
+                    const menuItems = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
+                    let existingImage = itemImageDataInput.value; 
+
+                    const finalizeSave = (newImageData = existingImage) => {
+                        const newItem = {
+                            name: itemNameInput.value.trim(),
+                            description: itemDescInput.value.trim(),
+                            priceRegular: parseFloat(document.getElementById('item-price-regular').value),
+                            priceTall: parseFloat(document.getElementById('item-price-tall').value),
+                            image: newImageData
+                        };
+                        
+                        // Validate prices
+                        if (newItem.priceRegular <= 0 || newItem.priceTall <= 0) {
+                            alert('Please enter positive prices for Regular and Tall');
+                            return;
+                        }
+                        
+                        // Validate positive prices
+                        // basic positivity above
+                        
+                        if (isEditing) {
+                            if (confirm("Are you sure you want to apply changes?")) {
+                                // ensure both image keys exist for cross-page compatibility
+                                newItem.img = newItem.image || '';
+                                // locate item index by id
+                                const editIndex = menuItems.findIndex(mi => String(mi.id) === String(editingId));
+                                if (editIndex === -1) {
+                                    alert('Failed to locate the item to update. It may have been removed.');
+                                    return;
+                                }
+                                // preserve id
+                                newItem.id = menuItems[editIndex].id || editingId;
+                                menuItems[editIndex] = newItem;
+                                localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuItems));
+                                alert(`"${newItem.name}" updated successfully!`);
+
+                                // reset editing marker
+                                addItemForm.setAttribute('data-editing-id', '-1');
+                                menuModal.style.display = 'none';
+                                updateMenuAndSync();
+                            } else {
+                                return; 
+                            }
+                        } else {
+                            // Create Logic
+                            // ensure both image keys exist for cross-page compatibility
+                            newItem.img = newItem.image || '';
+                            // assign stable id
+                            const existingIds = (menuItems || []).map(i => Number(i.id || 0)).filter(Boolean);
+                            const nextId = existingIds.length ? Math.max(...existingIds) + 1 : 1;
+                            newItem.id = nextId;
+                            menuItems.push(newItem);
+                            localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuItems));
+                            
+                            alert(`"${newItem.name}" added successfully!`);
+                            addItemForm.reset();
+                            itemImageDataInput.value = '';
+                            updateMenuAndSync();
+                        }
+                    };
+
+                    const file = itemImageInput.files[0];
+                    if (file) {
+                        // Handle new image upload
+                        if (file.size > 500 * 1024) {
+                            alert('Image file is too large. Please use an image under 500KB.');
+                            return;
+                        }
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                            finalizeSave(reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        // No new file uploaded, use existing image data (for edit) or default (for add)
+                        finalizeSave();
+                    }
+                };
+
+                // --- EVENT LISTENERS FOR MENU MANAGEMENT ---
+
+                if (addItemBtn) {
+                    addItemBtn.addEventListener('click', () => {
+                        modalTitle.textContent = "Add New Item";
+                        addItemForm.style.display = 'block';
+                        menuContainer.style.display = 'none';
+                            addItemForm.reset(); 
+                        addItemForm.setAttribute('data-editing-id', '-1');
+                        saveItemBtn.innerHTML = '<i class="fa-solid fa-save mr-2"></i> Save Item';
+                        deleteItemOnEditBtn.style.display = 'none';
+                        itemImageDataInput.value = '';
+                        menuModal.style.display = 'flex';
+                    });
+                }
+
+                if (editMenuBtn) {
+                    editMenuBtn.addEventListener('click', () => {
+                        modalTitle.textContent = "Edit Current Menu";
+                        addItemForm.style.display = 'none';
+                        menuContainer.style.display = 'block';
+                        renderModalList();
+                        menuModal.style.display = 'flex';
+                    });
+                }
+
+                if (closeModalBtn) {
+                    closeModalBtn.addEventListener('click', () => {
+                        menuModal.style.display = 'none';
+                        renderMainGrid();
+                    });
+                }
+
+                window.onclick = (event) => {
+                    if (event.target == menuModal) {
+                        menuModal.style.display = 'none';
+                        renderMainGrid(); 
+                    }
+                };
+
+                if (addItemForm) {
+                    addItemForm.addEventListener('submit', handleFormSubmit);
+                }
+
+                // Event listener delegation for the list container
+                if (menuList) {
+                    menuList.addEventListener('click', (e) => {
+                        const deleteButton = e.target.closest('.remove-item-btn');
+                        const editButton = e.target.closest('.edit-item-btn');
+
+                        if (deleteButton) {
+                            const id = deleteButton.getAttribute('data-id');
+                            handleDelete(id);
+                        } else if (editButton) {
+                            const id = editButton.getAttribute('data-id');
+                            handleEdit(id);
+                        }
+                    });
+                }
+
+                // Event listener for the delete button on the Edit form
+                if (deleteItemOnEditBtn) {
+                    deleteItemOnEditBtn.addEventListener('click', () => {
+                        const id = deleteItemOnEditBtn.getAttribute('data-id');
+                        handleDelete(id);
+                    });
+                }
+
+                // Initialize default menu if none exists
+                function initializeDefaultMenu() {
+                    const menuItems = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
+                    // If admin menu is empty, seed with canonical defaults (assign stable ids) so admin sees them
+                    if (!Array.isArray(menuItems) || menuItems.length === 0) {
+                        const seeded = DEFAULT_MENU_ITEMS.slice().map((it, idx) => Object.assign({ id: idx + 1 }, it));
+                        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(seeded));
+                    }
+                }
+
+                // Initial setup
+                function initializeDefaultData() {
+                    initializeDefaultMenu();
+                    
+                    const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || '[]');
+                    if (accounts.length === 0) {
+                        accounts.push(
+                            { username: 'cashier1', password: 'password', role: 'Cashier' },
+                            { username: 'customer1', password: 'password', role: 'Customer' }
+                        );
+                        localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
+                    }
+                    
+                    const announcements = JSON.parse(localStorage.getItem(ANNOUNCEMENTS_STORAGE_KEY) || '[]');
+                    if (announcements.length === 0) {
+                        announcements.push(
+                            { 
+                                title: 'Welcome to Jessie Cane!', 
+                                content: 'We\'re excited to have you as part of our team. Please familiarize yourself with the system.',
+                                date: new Date().toLocaleDateString()
+                            }
+                        );
+                        localStorage.setItem(ANNOUNCEMENTS_STORAGE_KEY, JSON.stringify(announcements));
+                    }
+                }
+
+                // Load initial data
+                initializeDefaultData();
+                renderAnnouncements();
+                renderAccountsList();
+                loadSettings();
+                renderMainGrid();
+                
+                // Start with dashboard section
+                switchSection('dashboard');
+            }
+        </script>
+    </body>
+    </html>
