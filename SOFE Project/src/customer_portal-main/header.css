@@ -15,6 +15,18 @@ header, .navbar {
   color: var(--header-text);
 }
 
+/* Make header sticky by default and provide a scrolled state for a subtle shadow */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 1100;
+  transition: box-shadow 0.18s ease, backdrop-filter 0.18s ease;
+}
+.scrolled, header.scrolled {
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  backdrop-filter: saturate(120%) blur(4px);
+}
+
 .left-header, .logo { display:flex; align-items:center; gap:10px; }
 .left-header img, .logo img { height:60px; }
 
@@ -30,6 +42,42 @@ header, .navbar {
   padding: 8px 12px;
   border-radius: 8px;
 }
+
+/* Disabled nav style: visually de-emphasize and prevent pointer interaction, but keep focusable for accessibility */
+.nav-btn.disabled {
+  color: rgba(255,255,255,0.78); /* slightly muted but readable */
+  cursor: default;
+  pointer-events: none;
+  opacity: 0.95;
+  filter: grayscale(10%);
+  text-decoration: none;
+}
+.nav-btn.disabled:focus {
+  outline: 2px dashed rgba(255,255,255,0.14);
+  outline-offset: 3px;
+}
+
+/* In-page auth/banner used to notify users before redirecting to login */
+.auth-banner {
+  position: fixed;
+  top: 74px; /* just below header */
+  left: 50%;
+  transform: translateX(-50%);
+  background: #fff8e1;
+  color: #2d2d2d;
+  border: 1px solid #e5c100;
+  padding: 10px 14px;
+  border-radius: 8px;
+  z-index: 1200;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.12);
+  opacity: 0;
+  transition: opacity 240ms ease, transform 240ms ease;
+  pointer-events: none; /* don't block underlying clicks */
+  max-width: 720px;
+  width: calc(100% - 40px);
+}
+.auth-banner.auth-banner--visible { opacity: 1; transform: translateX(-50%) translateY(0); }
+.auth-banner small { display:block; margin-top:6px; color: #6b6b6b; font-size:12px }
 
 .nav-btn::after, .navbar a::after {
   content: '';
