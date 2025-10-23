@@ -1,5 +1,3 @@
-/* customer_dashboard.css */
-
 @font-face {
   font-family: rawr;
   src: url(Cocogoose-Pro-Regular-trial.ttf);
@@ -13,26 +11,22 @@ body {
   font-family: "Century Gothic", sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #FAF9F4; /* soft cream base */
+  background-color: #FAF9F4; 
 }
-
-/* header rules moved to header.css */
-
-/* Banner - Images remain completely unaffected */
 .banner {
   position: relative;
   overflow: hidden;
   display: block;
-  height: 420px; /* taller hero like the screenshot */
+  height: 420px; 
   width: 100%;
 }
 
 .banner img {
   position: absolute;
-  inset: 0; /* top:0;right:0;bottom:0;left:0 */
+  inset: 0; 
   width: 100%;
   height: 100%;
-  object-fit: cover; /* ensure the image fills and crops like the screenshot */
+  object-fit: cover;
   display: block;
   filter: brightness(0.78);
 }
@@ -53,7 +47,7 @@ body {
   flex-direction: column;
   padding: 0 18px;
   width: 78%;
-  z-index: 4; /* ensure text sits above banner image */
+  z-index: 4;
 }
 
 .text_overlay h1 {
@@ -98,7 +92,6 @@ body {
   box-shadow: 0 10px 26px rgba(14,36,24,0.12);
 }
 
-/* Service invitation banner - positioned below banner, doesn't affect images */
 .service-banner {
   background-color: #2E5D47;
   color: #FCF2C5;
@@ -149,7 +142,6 @@ body {
   box-shadow: 0 4px 8px rgba(0,0,0,0.2);
 }
 
-/* Alternate display items - text only, no image changes */
 .text_overlay .alt-item {
   position: absolute;
   left: 50%;
@@ -183,7 +175,6 @@ body {
   pointer-events: none;
 }
 
-/* Slight scale/translate to amplify the fade - text only */
 .text_overlay .alt-item.alt-visible {
   transform: translate(-50%, -50%) translateY(0);
 }
@@ -191,7 +182,6 @@ body {
   transform: translate(-50%, -50%) translateY(8px);
 }
 
-/* Pause indicator */
 .pause-indicator {
   position: absolute;
   right: 18px;
@@ -215,7 +205,6 @@ body {
   transform: translateY(0);
 }
 
-/* Featured Drinks Section - images remain unchanged */
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -242,7 +231,6 @@ body {
   justify-items: center;
 }
 
-/* Drink Cards - product images remain exactly as they are */
 .product {
   background-color: #fff;
   padding: 26px 20px;
@@ -262,7 +250,6 @@ body {
   box-shadow: 0 22px 56px rgba(15, 38, 24, 0.12);
 }
 
-/* Product images - completely unchanged from original */
 .product img {
   height: 200px;
   width: 200px;
@@ -331,7 +318,6 @@ body {
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-/* Footer */
 footer {
   background-color: #2E5D47;
   color: #FAF9F4;
@@ -341,7 +327,6 @@ footer {
   font-size: 14px;
 }
 
-/* Toast notifications */
 .toast {
   position: fixed;
   top: 20px;
@@ -353,8 +338,6 @@ footer {
   max-width: 300px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
 }
-
-/* Zoom control moved to header.css (shared across pages) */
 
 .toast-success {
   background-color: #4CAF50;
@@ -386,7 +369,6 @@ footer {
   font-size: 12px;
 }
 
-/* Responsive - images remain unaffected */
 @media (max-width: 768px) {
   header {
     flex-direction: column;
@@ -428,8 +410,7 @@ footer {
   .service-btn {
     width: 200px;
   }
-  
-  /* Banner image remains completely unchanged */
+
   .banner img {
     width: 100%;
     height: auto;
@@ -453,8 +434,7 @@ footer {
   .products {
     grid-template-columns: 1fr;
   }
-  
-  /* Product images remain exactly the same */
+
   .product img {
     height: 180px;
     width: 180px;
