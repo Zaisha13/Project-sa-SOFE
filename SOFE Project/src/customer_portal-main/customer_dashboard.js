@@ -32,6 +32,9 @@ function getMenuItems() {
         console.error('Error parsing customer menu items:', err);
         return [];
     }
+
+    // initialize text rotation for the newly rendered featured cards
+    try { initFeaturedTextRotation(container, { interval: 4500 }); } catch (err) { console.warn('initFeaturedTextRotation error', err); }
 }
 
 // Show notification function
@@ -56,53 +59,114 @@ function showToast(type, title, message) {
 // Render featured drinks
 function renderFeaturedDrinks() {
     const allMenuItems = getMenuItems();
-    console.log("🎯 Rendering featured drinks from:", allMenuItems);
-    
-    // Get random 3 items for featured section (or all if less than 3)
-    const featured = allMenuItems.length > 3 
-        ? shuffleArray([...allMenuItems]).slice(0, 3) 
-        : allMenuItems;
-    
     const container = document.getElementById("featured-drinks");
     const emptyState = document.getElementById("empty-featured");
 
     // Clear container first
     container.innerHTML = '';
 
-    // Handle empty menu
-    if (featured.length === 0) {
+    if (!allMenuItems || allMenuItems.length === 0) {
         emptyState.style.display = 'block';
         container.appendChild(emptyState);
         console.log("📭 No menu items to display in featured section");
-    } else {
-        emptyState.style.display = 'none';
-        console.log(`🎉 Displaying ${featured.length} featured drinks`);
-        
-        featured.forEach(drink => {
-            console.log("🔄 Rendering featured drink:", drink);
-            
-            const card = document.createElement("div");
-            card.classList.add("product");
-            
-            // Simple image handling - remove complex onerror that causes '"> issues
-            const imageHtml = drink.img && !drink.img.includes('JC') 
-                ? `<img src="${drink.img}" alt="${drink.name}" class="drink-image">`
-                : '<div class="no-image">🍹</div>';
-            
-            card.innerHTML = `
-                ${imageHtml}
-                <h3>${drink.name}</h3>
-                <p class="description">${drink.desc}</p>
-                <div class="prices">
-                    <div class="price-option">Regular: ₱${Number(drink.priceRegular || 0).toFixed(2)}</div>
-                    <div class="price-option">Tall: ₱${Number(drink.priceTall || drink.priceRegular || 0).toFixed(2)}</div>
-                </div>
-                <button class="view-btn" onclick="location.href='drinks.html'">View Menu</button>
-            `;
-            container.appendChild(card);
-        });
+        return;
+    }
+
+    emptyState.style.display = 'none';
+
+    const slots = Math.min(3, allMenuItems.length);
+
+    // helper to build an element for a given drink object
+    function buildSlotElement(drink) {
+        const el = document.createElement('div');
+        el.className = 'product featured-slot';
+
+        const imageHtml = drink && drink.img && !drink.img.includes('JC') ? `<img src="${drink.img}" alt="${drink.name}" class="drink-image">` : '<div class="no-image">🍹</div>';
+        const nameHtml = `<h3>${drink && drink.name ? drink.name : ''}</h3>`;
+                const descHtml = `<div class="description">${drink && drink.desc ? drink.desc : ''}</div>`;
+                const pricesHtml = `<div class="prices" aria-hidden="true"><div class="price-option">Regular: ₱${Number(drink && drink.priceRegular || 0).toFixed(2)}</div><div class="price-option">Tall: ₱${Number((drink && drink.priceTall) || (drink && drink.priceRegular) || 0).toFixed(2)}</div></div>`;
+
+        el.innerHTML = `${imageHtml}${nameHtml}${descHtml}${pricesHtml}<button class="view-btn" onclick="location.href='drinks.html'">View Menu</button>`;
+        return el;
+    }
+
+    // pick a random set of unique items for the slots
+    function pickRandomSet() {
+        const pool = [...allMenuItems];
+        const result = [];
+        while (result.length < slots && pool.length > 0) {
+            const idx = Math.floor(Math.random() * pool.length);
+            result.push(pool.splice(idx, 1)[0]);
+        }
+        return result;
+    }
+
+    // create initial fixed slots (elements) to preserve layout
+    const initialSet = pickRandomSet();
+    initialSet.forEach(drink => container.appendChild(buildSlotElement(drink)));
+    // ensure we always have the number of slots
+    while (container.children.length < slots) container.appendChild(buildSlotElement({}));
+
+    // per-card text rotation removed - descriptions and prices are static
+
+    // rotation timer (random next set each tick) - use named function so we can pause/resume reliably
+    const interval = 6000;
+    if (container._rotTimer) clearInterval(container._rotTimer);
+
+    let previousIds = initialSet.map(d => d && d.id ? d.id : (d && d.name) || JSON.stringify(d));
+
+    function rotateOnce() {
+        // choose a new set that's not identical to previous
+        let attempts = 0;
+        let next = pickRandomSet();
+        const nextIds = next.map(d => d && d.id ? d.id : (d && d.name) || JSON.stringify(d));
+        while (arraysEqual(nextIds, previousIds) && attempts < 8) {
+            next = pickRandomSet();
+            attempts++;
+        }
+
+        const slotEls = Array.from(container.querySelectorAll('.featured-slot'));
+
+            // Replace content of each slot immediately (no whole-card transition)
+            slotEls.forEach((oldSlot, i) => {
+                const drink = next[i] || {};
+                // build new inner HTML and replace directly
+                try {
+                                        const newInner = (function(d){
+                                                var imageHtml = (d && d.img && !d.img.includes('JC')) ? ('<img src="' + (d.img || '') + '" alt="' + (d.name || '') + '" class="drink-image">') : ('<div class="no-image">🍹</div>');
+                                                var nameHtml = '<h3>' + (d && d.name ? d.name : '') + '</h3>';
+                                                var descHtml = '<div class="description-wrapper"><div class="desc-rotator">' +
+                                                        '<div class="alt-item alt-visible">' + (d && d.desc ? d.desc : '') + '</div>' +
+                                                        '<div class="alt-item alt-hidden">Regular: ₱' + Number(d && d.priceRegular || 0).toFixed(2) + '</div>' +
+                                                        '<div class="alt-item alt-hidden">Tall: ₱' + Number((d && d.priceTall) || (d && d.priceRegular) || 0).toFixed(2) + '</div>' +
+                                                        '</div></div>';
+                                                var pricesHtml = '<div class="prices" aria-hidden="true"><div class="price-option">Regular: ₱' + Number(d && d.priceRegular || 0).toFixed(2) + '</div><div class="price-option">Tall: ₱' + Number((d && d.priceTall) || (d && d.priceRegular) || 0).toFixed(2) + '</div></div>';
+                                                return imageHtml + nameHtml + descHtml + pricesHtml + '<button class="view-btn" onclick="location.href=\'drinks.html\'">View Menu</button>';
+                                        })(drink);
+
+                    oldSlot.innerHTML = newInner;
+                } catch (err) {
+                    console.warn('Error replacing slot content', err);
+                }
+            });
+
+        previousIds = nextIds;
+    }
+
+    container._rotTimer = setInterval(rotateOnce, interval);
+
+    // pause rotation on hover for accessibility
+    container.addEventListener('mouseenter', () => { if (container._rotTimer) { clearInterval(container._rotTimer); container._rotTimer = null; } });
+    container.addEventListener('mouseleave', () => { if (!container._rotTimer) container._rotTimer = setInterval(rotateOnce, interval); });
+
+    function arraysEqual(a, b) {
+        if (!a || !b || a.length !== b.length) return false;
+        for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+        return true;
     }
 }
+
+// Per-card text rotation removed; descriptions are now static.
 
 // Helper function to shuffle array (for random featured items)
 function shuffleArray(array) {
@@ -115,12 +179,11 @@ function shuffleArray(array) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Check if user is logged in
+    // Public page: allow visiting the dashboard without being logged in.
+    // Authentication guarded pages (like profile.html) still perform checks.
+    // Keep a debug trace for convenience.
     const isLoggedIn = localStorage.getItem("isLoggedIn");
-    if (!isLoggedIn || isLoggedIn !== "true") {
-        window.location.href = "login.html";
-        return;
-    }
+    console.log("customer_dashboard: isLoggedIn=", isLoggedIn);
 
     // Debug: Check what's in localStorage
     console.log("=== CUSTOMER DASHBOARD DEBUG INFO ===");
@@ -304,6 +367,8 @@ style.textContent = `
         display: block;
         margin-bottom: 5px;
     }
+    /* Description style (static) */
+    .description { color: #666; margin: 10px 0; line-height: 1.5; min-height: 40px; }
 `;
 document.head.appendChild(style);
 
