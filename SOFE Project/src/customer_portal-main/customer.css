@@ -1,5 +1,3 @@
-/* customer.css */
-
 :root {
   --light-green: #8fd19e;
   --dark-green: #146B33;
@@ -20,8 +18,6 @@ body {
   min-height: 100vh;
 }
 
-/* Header and navbar styles moved to header.css */
-
 .main-content {
   display: flex;
   flex: 1;
@@ -31,7 +27,6 @@ body {
   transition: margin-right 0.3s ease;
 }
 
-/* Menu Section */
 .menu-container {
   flex: 1;
   background-color: var(--white);
@@ -219,14 +214,12 @@ body {
   color: var(--accent-dark);
 }
 
-/* Empty States */
 #empty-menu-message, #empty-cart-message {
   text-align: center;
   color: #555;
   margin-top: 20px;
 }
 
-/* Footer */
 .footer {
   background-color: var(--dark-green);
   color: var(--white);
@@ -235,7 +228,6 @@ body {
   font-size: 14px;
 }
 
-/* Responsive */
 @media (max-width: 1024px) {
   .main-content {
       flex-direction: column;
@@ -269,7 +261,5 @@ body {
     border: 4px solid #146B33;
 }
 
-/* Inquiry form and modal styles (shared) */
 .inquiry-container { max-width:900px; margin:40px auto; padding:28px; background:#fffef4; border-radius:12px; box-shadow:0 6px 18px rgba(0,0,0,0.06);} 
 .inquiry-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
-/* Inquiry-specific styles were moved to inquiry.css */
