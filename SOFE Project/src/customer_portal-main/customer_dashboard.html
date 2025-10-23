@@ -29,7 +29,7 @@
   <section class="banner">
     <img src="images/BANNER.png" alt="Banner" />
     <div class="text_overlay">
-      <!-- Alternating items: primary heading and service invite -->
+
       <div id="alt-heading" class="alt-item alt-visible">
         <h1>Welcome to Jessie Cane Juicebar!</h1>
         <p>Refreshing sugarcane drinks made from nature's purest sweetness.</p>
@@ -42,16 +42,15 @@
           <button id="avail-service-btn" class="view-btn">Avail Service</button>
         </div>
       </div>
-      <!-- Pause indicator (hidden by default) -->
+
       <div id="pause-indicator" class="pause-indicator" aria-hidden="true" title="Slideshow paused">⏸</div>
     </div>
   </section>
 
-  <!-- FEATURED DRINKS -->
   <div class="container">
     <h2>Featured Drinks</h2>
     <div class="products" id="featured-drinks">
-      <!-- Empty state - will be populated by JavaScript -->
+
       <div class="empty-state" id="empty-featured">
         <i class="fas fa-glass-water"></i>
         <h3>Menu Coming Soon!</h3>
@@ -61,21 +60,11 @@
     </div>
   </div>
 
-  <!-- DEBUG PANEL (Remove in production)
-  <div style="position: fixed; bottom: 10px; right: 10px; background: #f8f5e9; padding: 10px; border: 2px solid #146B33; border-radius: 5px; z-index: 1000; font-size: 12px;">
-    <strong>Debug Tools:</strong><br>
-    <button onclick="checkSyncStatus()" style="margin: 2px; padding: 5px; font-size: 10px;">Check Sync</button>
-    <button onclick="manualSync()" style="margin: 2px; padding: 5px; font-size: 10px;">Manual Sync</button>
-    <button onclick="debugMenuData()" style="margin: 2px; padding: 5px; font-size: 10px;">Debug Data</button>
-  </div> -->
-
-  <!-- FOOTER -->
   <footer>
     <p>© 2025 Jessie Cane. All rights reserved.</p>
   </footer>
 
   <script>
-    // Wire the service invite buttons on the dashboard
     document.addEventListener('DOMContentLoaded', function(){
       const availBtn = document.getElementById('avail-service-btn');
       const declineBtn = document.getElementById('decline-service-btn');
@@ -92,18 +81,15 @@
       }
     });
   </script>
-  <!-- Zoom panel moved to shared header.js/css so it's available on all pages -->
-
+  
   <script>
-    // Alternator: toggles between the heading and the service-invite every 5 seconds
-    // with pause/resume when the user hovers or touches the invite.
     (function(){
       const HEADING = document.getElementById('alt-heading');
       const INVITE = document.getElementById('service-invite');
       if (!HEADING || !INVITE) return;
 
       let showingHeading = true;
-      const INTERVAL = 5000; // 5 seconds
+      const INTERVAL = 5000;
       let timerId = null;
       let paused = false;
 
@@ -136,17 +122,14 @@
   function pause() { paused = true; if (PAUSE_IND) PAUSE_IND.classList.add('pause-indicator--visible'); }
   function resume() { paused = false; if (PAUSE_IND) PAUSE_IND.classList.remove('pause-indicator--visible'); }
 
-      // Pause when user interacts with the invite (hover or touch)
       INVITE.addEventListener('mouseenter', pause);
       INVITE.addEventListener('mouseleave', resume);
       INVITE.addEventListener('touchstart', pause, {passive: true});
       INVITE.addEventListener('touchend', resume);
 
-      // Also pause when hovering over the heading area to avoid accidental flips
       HEADING.addEventListener('mouseenter', pause);
       HEADING.addEventListener('mouseleave', resume);
 
-      // Initialize
       startTimer();
     })();
   </script>
