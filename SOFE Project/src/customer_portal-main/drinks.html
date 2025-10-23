@@ -149,5 +149,29 @@
 
 
 
+  <!-- LOGIN MODAL (shown on Checkout when not logged in) -->
+  <div id="login-modal" class="modal-backdrop hidden" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" id="login-dialog" style="max-width:560px; position:relative;">
+      <button class="modal-close" id="login-close" aria-label="Close">&times;</button>
+      <div class="modal-body" style="align-items:flex-start;">
+        <div class="left-panel">
+          <div class="headline">LOGIN</div>
+          <div class="sub">You need to login before ordering a drink</div>
+        </div>
+        <div class="right-panel">
+          <form id="inline-login-form" class="auth-form" onsubmit="return false;">
+            <div class="form-field"><input id="inline-username" placeholder="Email or Username" /></div>
+            <div class="form-field"><input id="inline-password" placeholder="Password" type="password" /></div>
+            <div class="actions" style="margin-top:12px;">
+              <button id="login-cancel" class="btn-secondary">Cancel</button>
+              <button id="login-submit" class="btn-primary">Log In</button>
+            </div>
+            <div style="margin-top:12px;text-align:center;color:#546b5a;">or</div>
+            <div style="margin-top:10px;text-align:center;"><a href="register.html">Register here</a></div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
   </body>
   </html>
