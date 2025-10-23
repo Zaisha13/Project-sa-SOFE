@@ -1,11 +1,7 @@
-// ===== customer_dashboard.js =====
-
-// Storage Keys
 const ADMIN_MENU_KEY = "jessieCaneMenu";
 const CUSTOMER_MENU_KEY = "jessie_menu";
 const DEFAULT_IMAGE = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FFD966'/><text x='50' y='55' font-size='30' fill='%23146B33' text-anchor='middle'>🥤</text></svg>";
 
-// Get menu items from localStorage (synced from admin)
 function getMenuItems() {
     try {
         if (typeof syncFromAdmin === 'function') syncFromAdmin();
@@ -19,7 +15,6 @@ function getMenuItems() {
             const ps = parseFloat(item.priceSmall) || 0;
             const pm = parseFloat(item.priceMedium);
             const pl = parseFloat(item.priceLarge);
-            // Small -> Regular, Medium -> Tall, Large -> Tall (medium preferred)
             const priceRegular = !isNaN(ps) ? ps : 0;
             const priceTall = (!isNaN(pm) && pm > 0) ? pm : ( (!isNaN(pl) && pl > 0) ? pl : priceRegular );
 
@@ -33,36 +28,27 @@ function getMenuItems() {
         return [];
     }
 
-    // initialize text rotation for the newly rendered featured cards
     try { initFeaturedTextRotation(container, { interval: 4500 }); } catch (err) { console.warn('initFeaturedTextRotation error', err); }
 }
 
-// Show notification function
 function showToast(type, title, message) {
-    // Create toast element
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
     toast.innerHTML = `
         <strong>${title}</strong>
         <span>${message}</span>
     `;
-    
-    // Add to page
     document.body.appendChild(toast);
-    
-    // Remove after 3 seconds
     setTimeout(() => {
         toast.remove();
     }, 3000);
 }
 
-// Render featured drinks
 function renderFeaturedDrinks() {
     const allMenuItems = getMenuItems();
     const container = document.getElementById("featured-drinks");
     const emptyState = document.getElementById("empty-featured");
 
-    // Clear container first
     container.innerHTML = '';
 
     if (!allMenuItems || allMenuItems.length === 0) {
@@ -76,7 +62,6 @@ function renderFeaturedDrinks() {
 
     const slots = Math.min(3, allMenuItems.length);
 
-    // helper to build an element for a given drink object
     function buildSlotElement(drink) {
         const el = document.createElement('div');
         el.className = 'product featured-slot';
@@ -90,7 +75,6 @@ function renderFeaturedDrinks() {
         return el;
     }
 
-    // pick a random set of unique items for the slots
     function pickRandomSet() {
         const pool = [...allMenuItems];
         const result = [];
@@ -101,22 +85,16 @@ function renderFeaturedDrinks() {
         return result;
     }
 
-    // create initial fixed slots (elements) to preserve layout
     const initialSet = pickRandomSet();
     initialSet.forEach(drink => container.appendChild(buildSlotElement(drink)));
     // ensure we always have the number of slots
     while (container.children.length < slots) container.appendChild(buildSlotElement({}));
-
-    // per-card text rotation removed - descriptions and prices are static
-
-    // rotation timer (random next set each tick) - use named function so we can pause/resume reliably
     const interval = 6000;
     if (container._rotTimer) clearInterval(container._rotTimer);
 
     let previousIds = initialSet.map(d => d && d.id ? d.id : (d && d.name) || JSON.stringify(d));
 
     function rotateOnce() {
-        // choose a new set that's not identical to previous
         let attempts = 0;
         let next = pickRandomSet();
         const nextIds = next.map(d => d && d.id ? d.id : (d && d.name) || JSON.stringify(d));
@@ -126,11 +104,8 @@ function renderFeaturedDrinks() {
         }
 
         const slotEls = Array.from(container.querySelectorAll('.featured-slot'));
-
-            // Replace content of each slot immediately (no whole-card transition)
             slotEls.forEach((oldSlot, i) => {
                 const drink = next[i] || {};
-                // build new inner HTML and replace directly
                 try {
                                         const newInner = (function(d){
                                                 var imageHtml = (d && d.img && !d.img.includes('JC')) ? ('<img src="' + (d.img || '') + '" alt="' + (d.name || '') + '" class="drink-image">') : ('<div class="no-image">🍹</div>');
@@ -154,8 +129,6 @@ function renderFeaturedDrinks() {
     }
 
     container._rotTimer = setInterval(rotateOnce, interval);
-
-    // pause rotation on hover for accessibility
     container.addEventListener('mouseenter', () => { if (container._rotTimer) { clearInterval(container._rotTimer); container._rotTimer = null; } });
     container.addEventListener('mouseleave', () => { if (!container._rotTimer) container._rotTimer = setInterval(rotateOnce, interval); });
 
@@ -165,10 +138,6 @@ function renderFeaturedDrinks() {
         return true;
     }
 }
-
-// Per-card text rotation removed; descriptions are now static.
-
-// Helper function to shuffle array (for random featured items)
 function shuffleArray(array) {
     const newArray = [...array];
     for (let i = newArray.length - 1; i > 0; i--) {
@@ -179,13 +148,8 @@ function shuffleArray(array) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Public page: allow visiting the dashboard without being logged in.
-    // Authentication guarded pages (like profile.html) still perform checks.
-    // Keep a debug trace for convenience.
     const isLoggedIn = localStorage.getItem("isLoggedIn");
     console.log("customer_dashboard: isLoggedIn=", isLoggedIn);
-
-    // Debug: Check what's in localStorage
     console.log("=== CUSTOMER DASHBOARD DEBUG INFO ===");
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -195,10 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // Initial render
     renderFeaturedDrinks();
 
-    // Logout functionality
     const logoutBtn = document.querySelector(".logout");
     if (logoutBtn) {
         logoutBtn.addEventListener("click", (e) => {
@@ -216,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-// Debug function to check sync status
 function checkSyncStatus() {
     const adminMenu = JSON.parse(localStorage.getItem(ADMIN_MENU_KEY) || "[]");
     const customerMenu = JSON.parse(localStorage.getItem(CUSTOMER_MENU_KEY) || "[]");
@@ -231,7 +192,6 @@ function checkSyncStatus() {
     alert(`Admin: ${adminMenu.length} items\nCustomer: ${customerMenu.length} items\nFeatured: ${featuredCount} items showing\nCheck console for details.`);
 }
 
-// Manual sync function
 function manualSync() {
     const adminMenu = JSON.parse(localStorage.getItem(ADMIN_MENU_KEY) || "[]");
     
@@ -241,8 +201,7 @@ function manualSync() {
     }
     
     console.log("🔄 Manual sync triggered...", adminMenu);
-    
-    // Convert and save to customer format
+
     const customerMenu = adminMenu.map((item, index) => {
         const imageMap = {
             "Pure Sugarcane": "images/pure-sugarcane.png",
@@ -262,14 +221,11 @@ function manualSync() {
     
     localStorage.setItem(CUSTOMER_MENU_KEY, JSON.stringify(customerMenu));
     console.log(`✅ Manual sync completed: ${customerMenu.length} items`, customerMenu);
-    
-    // Immediately re-render featured drinks
     renderFeaturedDrinks();
     
     alert(`Synced ${customerMenu.length} items to customer menu! Featured drinks updated.`);
 }
 
-// Force refresh function
 function forceRefresh() {
     localStorage.removeItem(CUSTOMER_MENU_KEY);
     console.log("🔄 Force refresh - cleared customer menu cache");
@@ -277,7 +233,6 @@ function forceRefresh() {
     alert("Customer menu cache cleared! Re-syncing from admin...");
 }
 
-// Emergency cleanup function
 function emergencyCleanup() {
     if (confirm('This will clear ALL menu data. Are you sure?')) {
         localStorage.removeItem(ADMIN_MENU_KEY);
@@ -288,7 +243,6 @@ function emergencyCleanup() {
     }
 }
 
-// Debug function to check what's in localStorage
 function debugMenuData() {
     console.log("=== DEBUG MENU DATA ===");
     console.log("Admin Menu (jessieCaneMenu):", JSON.parse(localStorage.getItem(ADMIN_MENU_KEY) || "[]"));
@@ -301,7 +255,6 @@ function debugMenuData() {
     alert(`Admin: ${adminCount} items\nCustomer: ${customerCount} items\nFeatured Showing: ${featuredCount} items\nCheck console for details.`);
 }
 
-// Add CSS for the featured drinks
 const style = document.createElement('style');
 style.textContent = `
     .no-image {
@@ -371,8 +324,6 @@ style.textContent = `
     .description { color: #666; margin: 10px 0; line-height: 1.5; min-height: 40px; }
 `;
 document.head.appendChild(style);
-
-// Log initialization
 console.log("✅ customer_dashboard.js loaded successfully");
 console.log("Available debug commands:");
 console.log("- checkSyncStatus() - Check sync status");
