@@ -6,6 +6,29 @@
   <title>Profile | Jessie Cane</title>
   <link rel="stylesheet" href="header.css">
   <link rel="stylesheet" href="profile.css">
+  <script>
+    // If unauthenticated, show an in-page banner then redirect to login
+    (function(){
+      try {
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+          var banner = document.createElement('div');
+          banner.className = 'auth-banner auth-banner--visible';
+          banner.setAttribute('role','status');
+          banner.innerHTML = '<div>Please log in or register to access your profile.</div><small>Redirecting to login...</small>';
+          document.addEventListener('DOMContentLoaded', function(){ document.body.appendChild(banner); });
+          // allow users to cancel the redirect by interacting (clicking) so nav is usable
+          var cancelFn = function(){
+            try { clearTimeout(redirectT); } catch(e){}
+            try { banner.classList.remove('auth-banner--visible'); } catch(e){}
+            setTimeout(function(){ if (banner && banner.parentNode) banner.parentNode.removeChild(banner); }, 300);
+            document.removeEventListener('click', cancelFn, true);
+          };
+          document.addEventListener('click', cancelFn, true);
+          var redirectT = setTimeout(function(){ window.location.href = 'login.html'; }, 1400);
+        }
+      } catch (err) { /* ignore in non-browser contexts */ }
+    })();
+  </script>
 </head>
 <body>
   <!-- header (shared) -->
@@ -26,11 +49,14 @@
     <section class="profile-card">
       <div class="left-col">
         <div class="photo-wrap">
-          <img id="profile-photo" src="images/no-profile.png" alt="Profile photo">
+          <img id="profile-photo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='240' height='240' fill='none' stroke='%232E5D47' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='5' width='20' height='14' rx='2' ry='2'/><circle cx='12' cy='12' r='3'/><path d='M8 5l1.5-2h5L16 5'/></svg>' alt="Profile photo">
         </div>
-        <input id="photo-input" type="file" accept="image/*" />
+        <!-- Hidden native input, styled label used as visible button -->
+        <input id="photo-input" type="file" accept="image/*" aria-label="Choose profile photo" />
         <div class="photo-actions">
-          <button id="remove-photo" class="btn small">Remove</button>
+          <label for="photo-input" class="btn file-btn">Choose File</label>
+          <span id="photo-filename" class="file-name">No file chosen</span>
+          <button id="remove-photo" class="btn small remove-btn">Remove</button>
         </div>
       </div>
 
