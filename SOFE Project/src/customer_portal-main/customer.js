@@ -1,69 +1,38 @@
-// customer.js - lightweight sync/helper for customer dashboard
+// ===== customer_dashboard.js =====
 
+// Storage Keys
 const ADMIN_MENU_KEY = "jessieCaneMenu";
 const CUSTOMER_MENU_KEY = "jessie_menu";
 const DEFAULT_IMAGE = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FFD966'/><text x='50' y='55' font-size='30' fill='%23146B33' text-anchor='middle'>🥤</text></svg>";
 
-function migrateItemPrices(item) {
-    if (!item) return null;
-    if (typeof item.priceRegular === 'number' && typeof item.priceTall === 'number') return item;
-    const ps = parseFloat(item.priceSmall) || 0;
-    const pm = parseFloat(item.priceMedium);
-    const pl = parseFloat(item.priceLarge);
-    // Mapping rule: Small -> Regular, Medium -> Tall, Large -> Tall (Medium preferred when present)
-    const priceRegular = !isNaN(ps) ? ps : 0;
-    const priceTall = (!isNaN(pm) && pm > 0) ? pm : ( (!isNaN(pl) && pl > 0) ? pl : priceRegular );
-    return Object.assign({}, item, { priceRegular: Number(priceRegular), priceTall: Number(priceTall) });
-}
-
-function syncFromAdmin() {
-    const adminMenu = JSON.parse(localStorage.getItem(ADMIN_MENU_KEY) || '[]');
-    if (!Array.isArray(adminMenu) || adminMenu.length === 0) return [];
-
-    const customerMenu = adminMenu.map((item, index) => {
-        const imageMap = {
-            "Pure Sugarcane": "images/pure-sugarcane.png",
-            "Calamansi Cane": "images/calamansi-cane.png",
-            "Lemon Cane": "images/lemon-cane.png",
-            "Yakult Cane": "images/yakult-cane.png",
-            "Calamansi Yakult Cane": "images/calamansi-yakult-cane.png",
-            "Lemon Yakult Cane": "images/lemon-yakult-cane.png",
-            "Lychee Cane": "images/lychee-cane.png",
-            "Orange Cane": "images/orange-cane.png",
-            "Passion Fruit Cane": "images/passion-fruit-cane.png",
-            "Watermelon Cane": "images/watermelon-cane.png",
-            "Strawberry Yogurt Cane": "images/strawberry-yogurt-cane.png",
-            "Dragonfruit Cane": "images/dragon-fruit-cane.png"
-        };
-        const finalImage = item.image || imageMap[item.name] || DEFAULT_IMAGE;
-        const migrated = migrateItemPrices(item);
-        return {
-            id: index + 1,
-            name: item.name || 'Unnamed',
-            desc: item.description || item.desc || '',
-            priceRegular: (typeof migrated.priceRegular === 'number') ? migrated.priceRegular : Number(migrated.priceRegular || 0),
-            priceTall: (typeof migrated.priceTall === 'number') ? migrated.priceTall : Number(migrated.priceTall || migrated.priceRegular || 0),
-            img: finalImage
-        };
-    });
-
-    localStorage.setItem(CUSTOMER_MENU_KEY, JSON.stringify(customerMenu));
-    return customerMenu;
-}
-
+// Get menu items from localStorage (synced from admin)
 function getMenuItems() {
-    // prefer customer storage but migrate if needed
-    const stored = JSON.parse(localStorage.getItem(CUSTOMER_MENU_KEY) || '[]');
-    if (Array.isArray(stored) && stored.length > 0) {
-        return stored.map(migrateItemPrices);
+    try {
+        if (typeof syncFromAdmin === 'function') syncFromAdmin();
+
+        const storedMenu = JSON.parse(localStorage.getItem(CUSTOMER_MENU_KEY) || '[]');
+
+        const migrated = Array.isArray(storedMenu) ? storedMenu.map(item => {
+            if (!item) return null;
+            if (typeof item.priceRegular === 'number' && typeof item.priceTall === 'number') return item;
+
+            const ps = parseFloat(item.priceSmall) || 0;
+            const pm = parseFloat(item.priceMedium);
+            const pl = parseFloat(item.priceLarge);
+            // Small -> Regular, Medium -> Tall, Large -> Tall (medium preferred)
+            const priceRegular = !isNaN(ps) ? ps : 0;
+            const priceTall = (!isNaN(pm) && pm > 0) ? pm : ( (!isNaN(pl) && pl > 0) ? pl : priceRegular );
+
+            return Object.assign({}, item, { priceRegular: Number(priceRegular), priceTall: Number(priceTall) });
+        }).filter(Boolean) : [];
+
+        const validItems = migrated.filter(item => item && item.name && item.name.trim() !== '' && item.name !== 'JC' && !item.name.includes('Default') && typeof item.priceRegular === 'number' && item.priceRegular > 0);
+        return validItems;
+    } catch (err) {
+        console.error('Error parsing customer menu items:', err);
+        return [];
     }
-    return syncFromAdmin();
 }
-
-// expose for debugging
-window.getMenuItemsForCustomer = getMenuItems;
-
-console.log('customer.js loaded');
 
 // Show notification function
 function showToast(type, title, message) {
@@ -84,36 +53,16 @@ function showToast(type, title, message) {
     }, 3000);
 }
 
-// Popup functions
-function showPopup(type, options) {
-    // Implementation for popup modal
-    const popup = document.createElement('div');
-    popup.className = 'popup-overlay';
-    popup.innerHTML = `
-        <div class="popup popup-${type}">
-            <h3>${options.title}</h3>
-            <p>${options.message}</p>
-            <div class="popup-actions">
-                ${options.actions.map(action => 
-                    `<button class="btn btn-${action.type}" onclick="${action.handler}">${action.text}</button>`
-                ).join('')}
-            </div>
-        </div>
-    `;
-    document.body.appendChild(popup);
-}
-
-function hidePopup() {
-    const popup = document.querySelector('.popup-overlay');
-    if (popup) popup.remove();
-}
-
-// Render featured drinks
+// Render featured drinks WITH FADE TRANSITION
 function renderFeaturedDrinks() {
     const allMenuItems = getMenuItems();
-    console.log("Filtered menu items for display:", allMenuItems);
+    console.log("🎯 Rendering featured drinks from:", allMenuItems);
     
-    const featured = allMenuItems.slice(0, 3); // Show first 3 items
+    // Get random 3 items for featured section (or all if less than 3)
+    const featured = allMenuItems.length > 3 
+        ? shuffleArray([...allMenuItems]).slice(0, 3) 
+        : allMenuItems;
+    
     const container = document.getElementById("featured-drinks");
     const emptyState = document.getElementById("empty-featured");
 
@@ -124,35 +73,130 @@ function renderFeaturedDrinks() {
     if (featured.length === 0) {
         emptyState.style.display = 'block';
         container.appendChild(emptyState);
-        console.log("No menu items to display");
+        console.log("📭 No menu items to display in featured section");
     } else {
         emptyState.style.display = 'none';
-        featured.forEach(drink => {
-            console.log("Rendering drink:", drink);
-            
+        console.log(`🎉 Displaying ${featured.length} featured drinks`);
+        
+        // Create a featured-slider container for rotating items
+        const slider = document.createElement('div');
+        slider.className = 'featured-slider';
+        container.appendChild(slider);
+
+        featured.forEach((drink, index) => {
+            console.log("🔄 Rendering featured drink:", drink);
+
             const card = document.createElement("div");
-            card.classList.add("product");
-            
-            // Simple image handling
-            const imageHtml = drink.img && drink.img !== DEFAULT_IMAGE 
-                ? `<img src="${drink.img}" alt="${drink.name}" onerror="this.style.display='none'">`
+            card.classList.add("featured-item");
+            if (index === 0) {
+                card.classList.add("visible"); // First item is visible initially
+            }
+
+            const imageHtml = drink.img && !drink.img.includes('JC') 
+                ? `<img src="${drink.img}" alt="${drink.name}" class="drink-image">`
                 : '<div class="no-image">🍹</div>';
-            
-            const regular = Number(drink.priceRegular || 0).toFixed(2);
-            const tall = Number(drink.priceTall || drink.priceRegular || 0).toFixed(2);
+
             card.innerHTML = `
                 ${imageHtml}
                 <h3>${drink.name}</h3>
-                <p>${drink.desc}</p>
-                <p class="price">
-                    Regular: ₱${regular}<br>
-                    Tall: ₱${tall}
-                </p>
+                <p class="description">${drink.desc || 'Refreshing beverage'}</p>
+                <div class="prices">
+                    <div class="price-option">Regular: ₱${Number(drink.priceRegular || 0).toFixed(2)}</div>
+                    ${drink.priceTall && drink.priceTall !== drink.priceRegular ? 
+                      `<div class="price-option">Tall: ₱${Number(drink.priceTall || 0).toFixed(2)}</div>` : ''}
+                </div>
                 <button class="view-btn" onclick="location.href='drinks.html'">View Menu</button>
             `;
-            container.appendChild(card);
+
+            slider.appendChild(card);
         });
+
+        // Initialize rotation if we have multiple items
+        if (featured.length > 1) {
+            initFeaturedRotation(slider, { interval: 4500 });
+        }
     }
+}
+
+// Helper function to shuffle array (for random featured items)
+function shuffleArray(array) {
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+    }
+    return newArray;
+}
+
+// Rotation logic for featured-slider
+function initFeaturedRotation(sliderEl, opts = {}) {
+    if (!sliderEl) return;
+    const interval = opts.interval || 4000;
+
+    const items = Array.from(sliderEl.querySelectorAll('.featured-item'));
+    if (items.length === 0) return;
+
+    let current = 0;
+    
+    // Show the first item immediately
+    items.forEach((it, i) => {
+        it.classList.remove('visible', 'entering', 'exiting');
+        if (i === 0) it.classList.add('visible');
+    });
+
+    // Preload images for smooth transitions
+    items.forEach(it => {
+        const img = it.querySelector('img');
+        if (img) {
+            const preload = new Image();
+            preload.src = img.src;
+        }
+    });
+
+    let timer = setInterval(() => {
+        const next = (current + 1) % items.length;
+
+        const curEl = items[current];
+        const nextEl = items[next];
+
+        // Start exit animation on current
+        curEl.classList.remove('entering');
+        curEl.classList.add('exiting');
+
+        // Prepare next
+        nextEl.classList.remove('exiting');
+        nextEl.classList.add('entering');
+
+        // Small timeout to allow entering class to take effect before marking visible
+        setTimeout(() => {
+            curEl.classList.remove('visible');
+            curEl.classList.remove('exiting');
+
+            nextEl.classList.add('visible');
+            nextEl.classList.remove('entering');
+
+            current = next;
+        }, 80);
+
+    }, interval);
+
+    // Pause on hover for accessibility
+    sliderEl.addEventListener('mouseenter', () => clearInterval(timer));
+    sliderEl.addEventListener('mouseleave', () => {
+        timer = setInterval(() => {
+            const next = (current + 1) % items.length;
+            const curEl = items[current];
+            const nextEl = items[next];
+            curEl.classList.add('exiting');
+            nextEl.classList.add('entering');
+            setTimeout(() => {
+                curEl.classList.remove('visible', 'exiting');
+                nextEl.classList.add('visible');
+                nextEl.classList.remove('entering');
+                current = next;
+            }, 80);
+        }, interval);
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -165,16 +209,19 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Debug: Check what's in localStorage
     console.log("=== CUSTOMER DASHBOARD DEBUG INFO ===");
-    console.log("All localStorage data:");
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
         if (key.includes('menu') || key.includes('Menu')) {
-            console.log(key + ":", localStorage.getItem(key));
+            const data = JSON.parse(localStorage.getItem(key) || "[]");
+            console.log(`${key}: ${data.length} items`, data);
         }
     }
 
-    // Render featured drinks
+    // Initial render
     renderFeaturedDrinks();
+
+    // Allow manual re-render via window for debugging
+    window.renderFeaturedDrinks = renderFeaturedDrinks;
 
     // Logout functionality
     const logoutBtn = document.querySelector(".logout");
@@ -191,12 +238,6 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
     }
-
-    // Auto-refresh menu every 5 seconds to catch admin updates
-    setInterval(() => {
-        console.log("🔄 Auto-checking for menu updates...");
-        renderFeaturedDrinks();
-    }, 5000);
 });
 
 // Debug function to check sync status
@@ -205,10 +246,13 @@ function checkSyncStatus() {
     const customerMenu = JSON.parse(localStorage.getItem(CUSTOMER_MENU_KEY) || "[]");
     
     console.log("=== SYNC STATUS ===");
-    console.log("Admin menu items:", adminMenu.length, adminMenu);
-    console.log("Customer menu items:", customerMenu.length, customerMenu);
+    console.log("Admin menu items:", adminMenu);
+    console.log("Customer menu items:", customerMenu);
     
-    alert(`Admin: ${adminMenu.length} items\nCustomer: ${customerMenu.length} items\nCheck console for details.`);
+    const featuredContainer = document.getElementById("featured-drinks");
+    const featuredCount = featuredContainer.querySelectorAll('.featured-item').length;
+    
+    alert(`Admin: ${adminMenu.length} items\nCustomer: ${customerMenu.length} items\nFeatured: ${featuredCount} items showing\nCheck console for details.`);
 }
 
 // Manual sync function
@@ -220,33 +264,41 @@ function manualSync() {
         return;
     }
     
-    console.log("🔄 Manual sync triggered...");
+    console.log("🔄 Manual sync triggered...", adminMenu);
     
     // Convert and save to customer format
     const customerMenu = adminMenu.map((item, index) => {
-        const migrated = migrateItemPrices(item);
+        const imageMap = {
+            "Pure Sugarcane": "images/pure-sugarcane.png",
+            "Calamansi Cane": "images/calamansi-cane.png", 
+            "Lemon Cane": "images/lemon-cane.png"
+        };
+        
         return {
             id: index + 1,
-            name: item.name || 'Unnamed',
-            desc: item.description || item.desc || '',
-            priceRegular: migrated.priceRegular || 0,
-            priceTall: migrated.priceTall || migrated.priceRegular || 0,
-            img: item.image || DEFAULT_IMAGE
+            name: item.name,
+            desc: item.description,
+            priceRegular: parseFloat(item.priceRegular) || parseFloat(item.priceSmall) || 0,
+            priceTall: parseFloat(item.priceTall) || parseFloat(item.priceMedium) || parseFloat(item.priceLarge) || parseFloat(item.priceSmall) || 0,
+            img: item.image || imageMap[item.name] || DEFAULT_IMAGE
         };
     });
     
     localStorage.setItem(CUSTOMER_MENU_KEY, JSON.stringify(customerMenu));
-    console.log(`✅ Manual sync completed: ${customerMenu.length} items`);
-    alert(`Synced ${customerMenu.length} items to customer menu! Page will reload.`);
-    location.reload();
+    console.log(`✅ Manual sync completed: ${customerMenu.length} items`, customerMenu);
+    
+    // Immediately re-render featured drinks
+    renderFeaturedDrinks();
+    
+    alert(`Synced ${customerMenu.length} items to customer menu! Featured drinks updated.`);
 }
 
 // Force refresh function
 function forceRefresh() {
     localStorage.removeItem(CUSTOMER_MENU_KEY);
     console.log("🔄 Force refresh - cleared customer menu cache");
-    alert("Customer menu cache cleared! Syncing from admin...");
     renderFeaturedDrinks();
+    alert("Customer menu cache cleared! Re-syncing from admin...");
 }
 
 // Emergency cleanup function
@@ -255,8 +307,8 @@ function emergencyCleanup() {
         localStorage.removeItem(ADMIN_MENU_KEY);
         localStorage.removeItem(CUSTOMER_MENU_KEY);
         console.log("✅ Emergency cleanup completed");
-        alert('All menu data cleared! Page will reload.');
-        location.reload();
+        renderFeaturedDrinks();
+        alert('All menu data cleared! Featured drinks section updated.');
     }
 }
 
@@ -268,24 +320,55 @@ function debugMenuData() {
     
     const adminCount = JSON.parse(localStorage.getItem(ADMIN_MENU_KEY) || "[]").length;
     const customerCount = JSON.parse(localStorage.getItem(CUSTOMER_MENU_KEY) || "[]").length;
+    const featuredCount = document.querySelectorAll('.featured-item').length;
     
-    alert(`Admin: ${adminCount} items\nCustomer: ${customerCount} items\nCheck console for details.`);
+    alert(`Admin: ${adminCount} items\nCustomer: ${customerCount} items\nFeatured Showing: ${featuredCount} items\nCheck console for details.`);
 }
 
-// Add this CSS for the no-image placeholder
+// Add CSS for the featured drinks
 const style = document.createElement('style');
 style.textContent = `
     .no-image {
-        width: 100px;
-        height: 100px;
+        width: 120px;
+        height: 120px;
         background: #f8f5e9;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2rem;
+        font-size: 3rem;
         margin: 0 auto 15px;
-        border: 3px solid #146B33;
+        border: 4px solid #146B33;
+    }
+    
+    .drink-image {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        margin: 0 auto 15px;
+        display: block;
+        border: 4px solid #146B33;
+    }
+    
+    .prices {
+        margin: 15px 0;
+    }
+    
+    .price-option {
+        background: #FFD966;
+        padding: 8px 15px;
+        border-radius: 20px;
+        margin: 5px 0;
+        font-weight: bold;
+        color: #146B33;
+    }
+    
+    .description {
+        color: #666;
+        margin: 10px 0;
+        line-height: 1.5;
+        min-height: 40px;
     }
     
     .toast {
@@ -312,10 +395,11 @@ style.textContent = `
 document.head.appendChild(style);
 
 // Log initialization
-    console.log("✅ customer.js loaded successfully");
-console.log("Available commands:");
+console.log("✅ customer_dashboard.js loaded successfully");
+console.log("Available debug commands:");
 console.log("- checkSyncStatus() - Check sync status");
-console.log("- manualSync() - Force manual sync");
+console.log("- manualSync() - Force manual sync and update featured drinks");
 console.log("- forceRefresh() - Clear cache and refresh");
 console.log("- debugMenuData() - Debug menu data");
 console.log("- emergencyCleanup() - Clear all menu data");
+console.log("- initFeaturedRotation() - Manually restart rotation");
