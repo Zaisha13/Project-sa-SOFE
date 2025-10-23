@@ -1,10 +1,6 @@
-// auth.js - FIXED VERSION
-
-// Initialize default users including admin and cashier
 function initializeDefaultUsers() {
     const storedUsers = JSON.parse(localStorage.getItem("jessie_users") || "[]");
     
-    // Only create admin if no users exist at all
     if (storedUsers.length === 0) {
         const adminUser = {
             name: 'Administrator',
@@ -15,30 +11,14 @@ function initializeDefaultUsers() {
             dateCreated: new Date().toISOString()
         };
         storedUsers.push(adminUser);
-        
-        // Optional: Uncomment if you want a default cashier too
-        /*
-        const cashierUser = {
-            name: 'Cashier User',
-            username: 'cashier',
-            email: 'cashier@jessiecane.com',
-            password: 'cashier123',
-            role: 'cashier',
-            dateCreated: new Date().toISOString()
-        };
-        storedUsers.push(cashierUser);
-        */
     }
 
     localStorage.setItem("jessie_users", JSON.stringify(storedUsers));
 }
 
-
-// Smart redirect function for src folder structure
 function getRedirectPath(role) {
   const currentPath = window.location.pathname;
   
-  // If we're in customer_portal-main folder (login.html location)
   if (currentPath.includes('customer_portal-main')) {
     switch(role) {
       case 'admin': return '../admin.html';
@@ -46,7 +26,6 @@ function getRedirectPath(role) {
       default: return 'customer_dashboard.html';
     }
   } 
-  // If we're somewhere else
   else {
     switch(role) {
       case 'admin': return 'admin.html';
@@ -57,23 +36,18 @@ function getRedirectPath(role) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // Initialize default users
   initializeDefaultUsers();
 
   const loginForm = document.getElementById("loginForm");
   const registerForm = document.getElementById("registerForm");
   const adminLoginBtn = document.getElementById("adminLoginBtn");
 
-  // -----------------------
-  // ADMIN LOGIN FUNCTIONALITY
-  // -----------------------
   if (adminLoginBtn) {
     adminLoginBtn.addEventListener("click", () => {
-      // Auto-fill admin credentials
+
       document.getElementById("email").value = "admin";
       document.getElementById("password").value = "admin123";
       
-      // Visual feedback
       const originalText = adminLoginBtn.innerHTML;
       adminLoginBtn.innerHTML = '<i class="fas fa-check"></i> Credentials Filled';
       adminLoginBtn.style.background = 'linear-gradient(135deg, #10B981, #059669)';
@@ -89,9 +63,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // -----------------------
-  // REGISTER FUNCTIONALITY
-  // -----------------------
   if (registerForm) {
     registerForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -113,7 +84,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Check if user already exists
       const existingUsers = JSON.parse(localStorage.getItem("jessie_users") || "[]");
       const userExists = existingUsers.some(user => user.email === email || user.username === username);
       
@@ -128,7 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Create user object (default role: customer)
       const user = {
         name,
         username,
@@ -138,7 +107,6 @@ document.addEventListener("DOMContentLoaded", () => {
         dateCreated: new Date().toISOString()
       };
 
-      // Save user in localStorage
       existingUsers.push(user);
       localStorage.setItem("jessie_users", JSON.stringify(existingUsers));
 
@@ -163,9 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // -----------------------
-  // LOGIN FUNCTIONALITY WITH ROLE-BASED REDIRECTS
-  // -----------------------
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
@@ -173,7 +138,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const emailInput = document.getElementById("email").value.trim();
       const passwordInput = document.getElementById("password").value;
 
-      // Get saved users from localStorage
       const storedUsers = JSON.parse(localStorage.getItem("jessie_users") || "[]");
 
       if (storedUsers.length === 0) {
@@ -187,7 +151,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Check credentials
       const foundUser = storedUsers.find(user => 
         (user.email === emailInput || user.username === emailInput) && 
         user.password === passwordInput
@@ -201,7 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
         submitBtn.disabled = true;
         
         setTimeout(() => {
-          // Save login state and user info
           localStorage.setItem("isLoggedIn", "true");
           localStorage.setItem("currentUser", JSON.stringify(foundUser));
           
@@ -209,7 +171,6 @@ document.addEventListener("DOMContentLoaded", () => {
             showToast('success', 'Welcome!', `Logged in as ${foundUser.name}`);
           }
           
-          // Redirect based on role using smart path detection
           setTimeout(() => {
             const redirectPath = getRedirectPath(foundUser.role);
             console.log(`Redirecting ${foundUser.role} user to: ${redirectPath}`);
@@ -217,7 +178,6 @@ document.addEventListener("DOMContentLoaded", () => {
           }, 1000);
         }, 1500);
       } else {
-        // Shake animation for error
         loginForm.classList.add('animate-shake');
         setTimeout(() => {
           loginForm.classList.remove('animate-shake');
@@ -234,9 +194,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // -----------------------
-  // GOOGLE AUTH PLACEHOLDER
-  // -----------------------
   const googleLogin = document.getElementById("googleLogin");
   const googleRegister = document.getElementById("googleRegister");
 
