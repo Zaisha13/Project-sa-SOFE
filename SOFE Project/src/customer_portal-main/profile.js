@@ -25,9 +25,10 @@
     const originalUsername = user.username || null;
     const originalEmail = user.email || null;
 
-    const photoImg = $('profile-photo');
-    const photoInput = $('photo-input');
-    const removeBtn = $('remove-photo');
+  const photoImg = $('profile-photo');
+  const photoInput = $('photo-input');
+  const removeBtn = $('remove-photo');
+  const photoFilename = $('photo-filename');
 
     // Populate fields
     $('name').value = user.name || '';
@@ -38,11 +39,14 @@
     $('phone').value = user.phone || '';
     $('address').value = user.address || '';
 
-    if (user.photo) photoImg.src = user.photo;
+  const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='240' height='240' fill='none' stroke='%232E5D47' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'><rect x='2' y='5' width='20' height='14' rx='2' ry='2'/><circle cx='12' cy='12' r='3'/><path d='M8 5l1.5-2h5L16 5'/></svg>";
+  if (user.photo) photoImg.src = user.photo; else photoImg.src = DEFAULT_AVATAR;
 
     photoInput.addEventListener('change', (e)=>{
       const f = e.target.files && e.target.files[0];
       if (!f) return;
+      // show filename
+      if (photoFilename) photoFilename.textContent = f.name || 'Selected file';
       dataURLFromFile(f, (dataUrl)=>{
         photoImg.src = dataUrl;
         user.photo = dataUrl;
@@ -52,9 +56,12 @@
     });
 
     removeBtn.addEventListener('click', ()=>{
-      photoImg.src = 'images/no-profile.png';
+  photoImg.src = DEFAULT_AVATAR;
       delete user.photo;
       saveProfile(user);
+      if (photoFilename) photoFilename.textContent = 'No file chosen';
+      // clear native input so same file can be re-chosen if desired
+      if (photoInput) photoInput.value = '';
       showToast('info','Removed','Profile photo removed');
     });
 
