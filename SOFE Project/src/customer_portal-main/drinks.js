@@ -82,17 +82,10 @@ function escapeHtml(str) {
 })();
 
 window.addEventListener("DOMContentLoaded", () => {
-    // Basic auth guard: redirect to login if not logged in
-    if (localStorage.getItem("isLoggedIn") !== "true") {
-        showPopup('info', {
-            title: 'Login Required',
-            message: 'Please log in to access the menu.',
-            actions: [
-                { text: 'Go to Login', type: 'primary', handler: () => window.location.href = 'login.html' }
-            ]
-        });
-        return;
-    }
+    // Public page: allow visiting the menu without logging in.
+    // No informational popup is displayed for guests — page loads silently.
+    // Keep a light debug trace for diagnostics.
+    console.debug('drinks.js: visitor isLoggedIn=', localStorage.getItem('isLoggedIn'));
 
     // DOM references
     const productsContainer = document.getElementById("products");
@@ -131,6 +124,53 @@ window.addEventListener("DOMContentLoaded", () => {
         modalBackdrop.classList.add("hidden");
         modalBackdrop.setAttribute("aria-hidden", "true");
     }
+
+            // Inline login modal helpers (shown on Checkout when visitor not logged in)
+            function showLoginModal() {
+                console.debug('showLoginModal called');
+                const modal = document.getElementById('login-modal');
+                if (!modal) { console.warn('login-modal not found'); return; }
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+
+                // wire once
+                if (modal.dataset.wired === 'true') return;
+                modal.dataset.wired = 'true';
+
+                const closeBtn = document.getElementById('login-close');
+                const cancelBtn = document.getElementById('login-cancel');
+                const submitBtn = document.getElementById('login-submit');
+                const userEl = document.getElementById('inline-username');
+                const passEl = document.getElementById('inline-password');
+
+                function hide() { hideLoginModal(); }
+                if (closeBtn) closeBtn.addEventListener('click', hide);
+                if (cancelBtn) cancelBtn.addEventListener('click', hide);
+
+                if (submitBtn) submitBtn.addEventListener('click', () => {
+                    const ident = (userEl?.value || '').trim();
+                    const pass = (passEl?.value || '');
+                    if (!ident || !pass) { alert('Please enter username/email and password'); return; }
+                    const users = JSON.parse(localStorage.getItem('jessie_users') || '[]');
+                    const found = users.find(u => (u.email === ident || u.username === ident) && u.password === pass);
+                    if (!found) { alert('Incorrect username/email or password'); return; }
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('currentUser', JSON.stringify(found));
+                    hideLoginModal();
+                    setTimeout(() => { const cb = document.getElementById('checkout-btn'); if (cb) cb.click(); }, 120);
+                });
+            }
+
+            function hideLoginModal() {
+                const modal = document.getElementById('login-modal');
+                if (!modal) return;
+                modal.classList.add('hidden');
+                modal.style.display = 'none';
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+        }
 
     // Render product cards using synced menu
     function renderProducts() {
@@ -400,7 +440,36 @@ function updateModalPrice() {
                 item.notes === modalState.notes
             );
 
-            if (existingIndex > -1) {
+            // If editing an existing cart item, update it instead of adding new
+            if (modalState && modalState.editingCartId) {
+                const editId = String(modalState.editingCartId);
+                const idxToEdit = cart.findIndex(i => String(i.cartId) === editId);
+                if (idxToEdit > -1) {
+                    cart[idxToEdit].productId = modalState.productId;
+                    cart[idxToEdit].size = modalState.size;
+                    cart[idxToEdit].special = modalState.special;
+                    cart[idxToEdit].notes = modalState.notes;
+                    cart[idxToEdit].qty = modalState.qty;
+                    cart[idxToEdit].unitPrice = unitPrice;
+                    if (typeof showToast === 'function') showToast('success', 'Cart Updated', `${product.name} updated in your cart`);
+                } else {
+                    // fallback to add new if the original item no longer exists
+                    cart.push({
+                        cartId: Date.now() + Math.random(),
+                        productId: modalState.productId,
+                        name: product.name,
+                        img: normalizeImagePath(product.img),
+                        size: modalState.size,
+                        special: modalState.special,
+                        notes: modalState.notes,
+                        qty: modalState.qty,
+                        unitPrice: unitPrice
+                    });
+                    if (typeof showToast === 'function') showToast('success', 'Added to Cart', `${product.name} added to your order!`);
+                }
+                // clear editing flag after applying
+                try { delete modalState.editingCartId; } catch (err) { modalState.editingCartId = null; }
+            } else if (existingIndex > -1) {
                 cart[existingIndex].qty += modalState.qty;
                 if (typeof showToast === 'function') showToast('success', 'Cart Updated', `Added ${modalState.qty} more ${product.name} to cart!`);
             } else {
@@ -553,9 +622,28 @@ function updateModalPrice() {
                                 text: 'Remove',
                                 type: 'primary',
                                 handler: () => {
+                                    // Remove the item, update UI and hide the confirmation
                                     cart.splice(idx, 1);
                                     updateCartUI();
-                                    showToast('success', 'Item Removed', `${itemName} removed from cart`);
+                                    hidePopup();
+
+                                    // Show follow-up confirmation with OK button that closes modal and navigates to dashboard
+                                    showPopup('success', {
+                                        title: 'Item Removed',
+                                        message: `${itemName} has been removed.`,
+                                        actions: [
+                                            {
+                                                text: 'OK',
+                                                type: 'primary',
+                                                handler: () => {
+                                                    hidePopup();
+                                                    try { closeModal(); } catch (err) { /* ignore */ }
+                                                    // navigate to dashboard to reflect cart changes clearly
+                                                    window.location.href = 'customer_dashboard.html';
+                                                }
+                                            }
+                                        ]
+                                    });
                                 }
                             }
                         ]
@@ -569,36 +657,35 @@ function updateModalPrice() {
                 const id = btn.dataset.id;
                 const item = cart.find(i => `${i.cartId}` === id);
                 if (!item) return;
+                // Open modal and populate it for editing the existing cart item
+                // Set editingCartId so confirm handler knows to update instead of adding
+                modalState.editingCartId = item.cartId;
+                modalState.productId = item.productId;
+                modalState.size = item.size;
+                modalState.qty = item.qty;
+                modalState.special = item.special;
+                modalState.notes = item.notes || '';
 
-                // populate modal state for editing
-                modalState = {
-                    productId: item.productId,
-                    size: item.size,
-                    qty: item.qty,
-                    special: item.special,
-                    notes: item.notes
-                };
-
-                // remove the item temporarily (will re-add on confirm)
-                cart = cart.filter(i => `${i.cartId}` !== id);
-                updateCartUI();
-
-                // populate modal UI
+                // Populate modal UI (reuse the same fields as openModal)
                 const PRODUCTS = getMenuItems(); // Get synced menu
                 const product = PRODUCTS.find(p => p.id === item.productId);
-                modalImg.src = item.img;
-                modalName.textContent = item.name;
-                modalDesc.textContent = product ? product.desc : "";
-                notesInput.value = item.notes;
-                qtyDisplay.textContent = item.qty;
+                if (modalImg) modalImg.src = item.img || (product && product.img) || '';
+                if (modalName) modalName.textContent = item.name || (product && product.name) || '';
+                if (modalDesc) modalDesc.textContent = (product && product.desc) || '';
+                if (notesInput) notesInput.value = modalState.notes;
+                if (qtyDisplay) qtyDisplay.textContent = String(modalState.qty || 1);
 
-                sizeButtons.forEach(b => b.classList.toggle("active", b.dataset.size === item.size || b.getAttribute('data-size') === item.size));
-                specialButtons.forEach(b => b.classList.toggle("active", b.dataset.special === item.special));
+                sizeButtons.forEach(b => b.classList.toggle('active', (b.dataset.size || b.getAttribute('data-size')) === modalState.size));
+                specialButtons.forEach(b => b.classList.toggle('active', b.dataset.special === modalState.special));
                 updateModalPrice();
 
-                modalBackdrop.classList.remove("hidden");
-                modalBackdrop.setAttribute("aria-hidden", "false");
-                document.body.style.overflow = "hidden";
+                // Show modal using same approach as openModal
+                if (modalBackdrop) {
+                    modalBackdrop.classList.remove('hidden');
+                    modalBackdrop.style.display = 'flex';
+                    modalBackdrop.setAttribute('aria-hidden', 'false');
+                    document.body.classList.add('modal-open');
+                }
             };
         });
     }
@@ -640,6 +727,12 @@ function updateModalPrice() {
         showPopup('warning', {
             message: 'Your cart is empty. Add some items before checking out.'
         });
+        return;
+    }
+    // If not logged in, show inline login modal before continuing to checkout
+    if (localStorage.getItem('isLoggedIn') !== 'true') {
+        // Show the inline login dialog which resumes checkout after successful login
+        showLoginModal();
         return;
     }
 
