@@ -12,107 +12,7 @@ body {
   color: #243628;
 }
 
-/* Header */
-header {
-    background-color: #2E5D47; /* pastel mint green */
-    color: #2E5D47;
-    text-align: center;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 50px;
-    height: 50px;
-}  
-
-.left-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-#drink_logo {
-  height: 55px;
-  width: 100px;
-}
-
-
-.right-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-right: 5px;
-}
-
-.nav-btn {
-  position: relative;
-  text-decoration: none;
-  color: #FAF9F4;
-  font-weight: 600;
-  padding: 8px 15px;
-  border-radius: 8px;
-  transition: color 0.3s ease, background-color 0.3s ease;
-  overflow: hidden;
-}
-
-/* Smooth underline animation */
-.nav-btn::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background-color: #E5C100; /* soft yellow underline */
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-/* Hover effect: underline expands + glow background */
-.nav-btn:hover::after {
-  width: 60%;
-}
-
-.nav-btn:hover {
-  color: #FCF2C5;
-}
-
-/* Active page highlight */
-.nav-btn.active {
-  color: #FCF2C5;
-  background-color: transparent; /* keep transparent */
-  box-shadow: none; /* remove shadow */
-}
-
-.nav-btn.active::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;          /* start from center */
-  width: 60%;          /* same as hover width */
-  height: 2px;
-  background-color: #E5C100;
-  transform: translateX(-50%); /* center underline under text */
-  transition: all 0.3s ease;
-}
-
-/* Logout button */
-.logout {
-  background-color: #FCF2C5;
-  color: #2E5D47;
-  border-radius: 8px;
-  padding: 8px 15px;
-  font-weight: 700;
-  transition: 0.3s ease;
-}
-
-.logout:hover {
-  background-color: #E5C100;
-  color: #2E5D47;
-  box-shadow: 0 0 10px rgba(229, 193, 0, 0.25);
-}
+/* header rules moved to header.css */
 
 /* Layout */
 .main-content { display:flex; gap:24px; padding:22px 28px; align-items:flex-start; }
@@ -354,11 +254,151 @@ header {
   width:920px; max-width:100%; background:white; border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;
   position:relative; display:flex; flex-direction:column;
 }
-.modal-close { position:absolute; right:12px; top:12px; border:none; background:transparent; font-size:18px; cursor:pointer; }
+.modal-close { position:absolute; right:12px; top:12px; border:none; background:transparent; font-size:18px; cursor:pointer; z-index:2100; }
 .modal-body { display:flex; gap:16px; padding:18px; }
 .modal-left { width:42%; display:flex; align-items:center; justify-content:center; padding:8px; }
 .modal-left img { width:350px; height:350px; object-fit:cover; border-radius:12px; }
 .modal-right { width:58%; padding:6px 8px; display:flex; flex-direction:column; gap:12px; }
+
+/* Modern registration dialog styles (scoped) */
+#registration-dialog .modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 22px;
+  align-items: center;
+  padding: 22px;
+}
+
+#registration-dialog h2 { font-size: 28px; margin: 0; color: #163f2a; font-weight: 800; }
+#registration-dialog p { margin: 0; color: #2f4f3f; font-size: 15px; line-height: 1.35; }
+
+#registration-dialog .left-panel { padding: 8px 10px; display:flex; flex-direction:column; justify-content:center; align-items:flex-start; }
+#registration-dialog .left-panel .headline { font-size: 32px; font-weight:900; color:#163f2a; margin-bottom:8px; }
+#registration-dialog .left-panel .sub { color:#3c6b55; max-width:220px; }
+
+#registration-dialog .form-field { display:block; margin-bottom:10px; }
+#registration-dialog input[type="text"],
+#registration-dialog input[type="email"] {
+  width:100%; padding:10px 12px; border-radius:8px; border:1px solid #d6e6da; background:#fff; box-shadow:inset 0 1px 0 rgba(0,0,0,0.02);
+  font-size:14px; color:#163f2a;
+}
+
+#registration-dialog .actions { display:flex; gap:12px; justify-content:flex-end; margin-top:8px; }
+#registration-dialog .btn-primary { background:#146B33; color:#fff; padding:10px 16px; border-radius:10px; border:none; cursor:pointer; font-weight:800; }
+#registration-dialog .btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+#registration-dialog .btn-secondary { background:#6c757d; color:#fff; padding:10px 16px; border-radius:10px; border:none; cursor:pointer; }
+
+/* Close button styling inside modal header */
+#registration-dialog .modal-close { position:absolute; right:12px; top:10px; background:transparent; border:none; font-size:18px; cursor:pointer; }
+
+@media (max-width: 820px) {
+  #registration-dialog .modal-body { grid-template-columns: 1fr; }
+  #registration-dialog .left-panel { order: -1; }
+}
+
+/* Inline login modal — modern two-column design */
+#login-modal .modal {
+  max-width: 860px;
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+#login-dialog .modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: start;
+  padding: 22px 22px 18px 22px;
+  background: #fff;
+}
+
+#login-dialog .left-panel {
+  padding: 8px 18px;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+
+#login-dialog .headline {
+  font-size: 42px;
+  font-weight: 900;
+  color: #163f2a;
+  letter-spacing: 0.6px;
+  margin: 6px 0 6px;
+  line-height: 1;
+}
+
+#login-dialog .sub {
+  color: #3c6b55;
+  margin-top: 8px;
+  font-size: 18px;
+  max-width: 320px;
+}
+
+#login-dialog .right-panel {
+  display:flex;
+  align-items:flex-start;
+  justify-content:flex-end;
+}
+
+#inline-login-form {
+  width: 100%;
+  max-width: 340px; /* slightly smaller to avoid edge overlap */
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  box-sizing: border-box; /* ensure padding is included in width */
+}
+
+#inline-login-form .form-field {
+  width: 100%;
+}
+
+#inline-login-form .form-field input {
+  width:100%;
+  padding:12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e6f3ea;
+  background: #fbfff9;
+  box-shadow: inset 0 1px 0 rgba(0,0,0,0.02);
+  font-size: 15px;
+  color: #163f2a;
+  box-sizing: border-box;
+  max-width: 100%;
+}
+
+#inline-login-form .form-field input::placeholder { color: #8aa99a; }
+
+#login-dialog .actions { display:flex; justify-content:flex-end; gap:12px; margin-top:6px; }
+
+/* Button styles specific to the inline modal */
+#inline-login-form .btn-secondary {
+  background: #63666a; color: #fff; border: none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:700;
+}
+#inline-login-form .btn-secondary:hover { filter:brightness(0.95); }
+
+#inline-login-form .btn-primary {
+  background: linear-gradient(135deg,#2E5D47,#1b3b2b);
+  color: #fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:800;
+}
+#inline-login-form .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(28,64,43,0.18); }
+
+#login-dialog .or-sep { text-align:center; color:#7a8b7e; margin-top:10px; }
+#login-dialog a { color:#5b2a78; font-weight:600; text-decoration:underline; }
+
+/* Keep modal reasonably sized on small screens */
+@media (max-width: 820px) {
+  #login-dialog .modal-body { grid-template-columns: 1fr; }
+  #login-dialog .left-panel { order: -1; padding-left:12px; }
+  #inline-login-form { max-width: calc(100% - 28px); }
+}
+
+/* Ensure the close button doesn't sit over the input on narrow right-panel */
+#login-dialog #login-close {
+  right: 14px;
+  top: 10px;
+}
 
 /* Options */
 .option-group { margin-top:6px; }
