@@ -1,17 +1,11 @@
-// ===== drinks.js =====
-
-// Get menu items from localStorage (synced from admin)
 function getMenuItems() {
     try {
         const storedMenu = JSON.parse(localStorage.getItem("jessie_menu") || "[]");
-        // Return only valid items
-        // Migrate old price fields (priceSmall/priceMedium/priceLarge) to priceRegular/priceTall if needed
         const migrated = Array.isArray(storedMenu) ? storedMenu.map(item => {
             if (!item) return null;
-            // If already has new fields, keep
+
             if (typeof item.priceRegular === 'number' && typeof item.priceTall === 'number') return item;
 
-            // Migrate using reasonable mapping: Small -> Regular, Medium -> Tall, Large -> Tall (if present, prefer Medium->Tall else Large->Tall)
             const ps = parseFloat(item.priceSmall) || 0;
             const pm = parseFloat(item.priceMedium);
             const pl = parseFloat(item.priceLarge);
@@ -22,7 +16,6 @@ function getMenuItems() {
             return Object.assign({}, item, { priceRegular, priceTall });
         }).filter(Boolean) : [];
 
-        // keep only items with a positive priceRegular
         return migrated.filter(item => item && item.name && item.name.trim() !== "" && typeof item.priceRegular === 'number' && item.priceRegular > 0);
     } catch (error) {
         console.error('Error parsing menu items:', error);
@@ -30,7 +23,6 @@ function getMenuItems() {
     }
 }
 
-// Canonical default menu used to preserve layout when admin updates menu
 const DEFAULT_MENU_ITEMS = [
     { id: 1, name: 'Pure Sugarcane', desc: 'Freshly pressed sugarcane juice in its purest form — naturally sweet, refreshing, and energizing with no added sugar or preservatives.', priceRegular: 79, priceTall: 109, img: 'images/pure-sugarcane.png' },
     { id: 2, name: 'Calamansi Cane', desc: 'A zesty twist on classic sugarcane juice, blended with the tangy freshness of calamansi for a perfectly balanced sweet and citrusy drink.', priceRegular: 89, priceTall: 119, img: 'images/calamansi-cane.png' },
@@ -46,7 +38,6 @@ const DEFAULT_MENU_ITEMS = [
     { id: 12, name: 'Dragon Fruit Cane', desc: 'A vibrant blend of dragon fruit and pure sugarcane juice — visually stunning, naturally sweet, and loaded with antioxidants.', priceRegular: 119, priceTall: 149, img: 'images/dragon-fruit-cane.png' }
 ];
 
-// Normalize image path: allow data: URLs, absolute http(s) or already-relative 'images/...', otherwise prefix with images/
 function normalizeImagePath(src) {
     if (!src) return '';
     try {
@@ -60,21 +51,17 @@ function normalizeImagePath(src) {
     }
 }
 
-// Small helper to escape HTML when injecting user-provided values into strings
 function escapeHtml(str) {
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
 }
 
-// Ensure default menu items exist even before DOMContentLoaded (so site shows items on first visit)
 (function ensureDefaultMenuOnLoad() {
     try {
         const existing = JSON.parse(localStorage.getItem('jessie_menu') || '[]');
         if (Array.isArray(existing) && existing.length > 0) return;
-
-        // use canonical DEFAULT_MENU_ITEMS and ensure they appear in storage with new price fields
         const defaults = DEFAULT_MENU_ITEMS.map(i => Object.assign({}, i));
-        // If storage empty, set defaults
+
         localStorage.setItem('jessie_menu', JSON.stringify(defaults));
     } catch (err) {
         console.error('Failed to initialize default menu:', err);
@@ -82,19 +69,14 @@ function escapeHtml(str) {
 })();
 
 window.addEventListener("DOMContentLoaded", () => {
-    // Public page: allow visiting the menu without logging in.
-    // No informational popup is displayed for guests — page loads silently.
-    // Keep a light debug trace for diagnostics.
     console.debug('drinks.js: visitor isLoggedIn=', localStorage.getItem('isLoggedIn'));
 
-    // DOM references
     const productsContainer = document.getElementById("products");
     const cartItemsEl = document.getElementById("cart-items");
     const totalDisplay = document.getElementById("total");
     const checkoutBtn = document.getElementById("checkout-btn");
     const clearOrderBtn = document.getElementById("clear-order");
 
-    // Modal references
     const modalBackdrop = document.getElementById("modal-backdrop");
     const modalClose = document.getElementById("modal-close");
     const modalImg = document.getElementById("modal-img");
@@ -108,24 +90,19 @@ window.addEventListener("DOMContentLoaded", () => {
     const notesInput = document.getElementById("notes");
     const modalPriceEl = document.getElementById("modal-price");
     let addConfirmBtn = document.getElementById("add-confirm-btn");
-    let isProcessingAdd = false; // guard to avoid duplicate handling when multiple listeners fire
+    let isProcessingAdd = false;
     const modalCancelBtn = document.getElementById('modal-cancel-btn');
 
-    // State
     let cart = [];
     let modalState = { productId: null, size: "Regular", qty: 1, special: "None", notes: "" };
 
-    // No-op: default menu behavior handled by ensureDefaultMenuOnLoad and DEFAULT_MENU_ITEMS
     function initializeDefaultMenuItems() { }
 
-    // Ensure modal is hidden on load
     if (modalBackdrop) {
         modalBackdrop.style.display = "none";
         modalBackdrop.classList.add("hidden");
         modalBackdrop.setAttribute("aria-hidden", "true");
     }
-
-            // Inline login modal helpers (shown on Checkout when visitor not logged in)
             function showLoginModal() {
                 console.debug('showLoginModal called');
                 const modal = document.getElementById('login-modal');
@@ -135,7 +112,6 @@ window.addEventListener("DOMContentLoaded", () => {
                 modal.setAttribute('aria-hidden', 'false');
                 document.body.classList.add('modal-open');
 
-                // wire once
                 if (modal.dataset.wired === 'true') return;
                 modal.dataset.wired = 'true';
 
@@ -172,7 +148,6 @@ window.addEventListener("DOMContentLoaded", () => {
                 document.body.classList.remove('modal-open');
         }
 
-    // Render product cards using synced menu
     function renderProducts() {
         if (!productsContainer) return;
         const PRODUCTS = getMenuItems();
@@ -218,7 +193,6 @@ window.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // Open modal (for Add/Edit)
     function openModal(productId) {
         const PRODUCTS = getMenuItems();
         const product = PRODUCTS.find(x => String(x.id) === String(productId));
@@ -243,19 +217,15 @@ window.addEventListener("DOMContentLoaded", () => {
         modalBackdrop.setAttribute("aria-hidden", "false");
         document.body.classList.add("modal-open");
 
-        // Ensure the confirm button gets its handler after modal is inserted into DOM
-        // (the modal may be rendered or moved by other code, so query it each time)
         try {
             addConfirmBtn = document.getElementById('add-confirm-btn');
             if (addConfirmBtn) {
-                // remove first to avoid duplicate listeners
                 addConfirmBtn.removeEventListener('click', handleAddConfirm);
                 addConfirmBtn.addEventListener('click', handleAddConfirm);
-                // mark the button so delegated click handler knows a direct listener exists
+
                 try { addConfirmBtn.dataset.handlerAttached = 'true'; } catch (err) { /* ignore */ }
             }
         } catch (err) {
-            // non-fatal
             console.error('Failed to attach add-confirm handler:', err);
         }
     }
@@ -266,20 +236,19 @@ window.addEventListener("DOMContentLoaded", () => {
         modalBackdrop.style.display = "none";
         modalBackdrop.setAttribute("aria-hidden", "true");
         document.body.classList.remove("modal-open");
-        // clear handler flag to ensure delegated handler can work correctly next time
+        
         try {
             if (addConfirmBtn && addConfirmBtn.dataset) delete addConfirmBtn.dataset.handlerAttached;
         } catch (err) { /* ignore */ }
     }
-
-    // Quick-add: add a product to cart as Regular size, qty 1 (used by Add to Cart buttons)
+    
     function addToCartQuick(productId) {
         const PRODUCTS = getMenuItems();
         const product = PRODUCTS.find(x => String(x.id) === String(productId));
         if (!product) return;
 
         const basePrice = Number(product.priceRegular || 0);
-        const unitPrice = basePrice; // no extras when quick-adding
+        const unitPrice = basePrice;
 
         const existingIndex = cart.findIndex(item =>
             item.productId === productId &&
@@ -309,7 +278,6 @@ window.addEventListener("DOMContentLoaded", () => {
         updateCartUI();
     }
 
-    // Update price preview inside modal
 function updateModalPrice() {
     const PRODUCTS = getMenuItems();
     const product = PRODUCTS.find(p => p.id === modalState.productId);
@@ -318,7 +286,6 @@ function updateModalPrice() {
         return;
     }
 
-    // Get base price based on selected size - FIXED
     let basePrice = 0;
     switch(modalState.size) {
         case "Regular":
@@ -328,7 +295,7 @@ function updateModalPrice() {
             basePrice = (product.priceTall || product.priceRegular) || 0;
             break;
         default:
-            basePrice = product.priceRegular || 0; // Default to regular
+            basePrice = product.priceRegular || 0;
     }
     
     const extra = modalState.special === "No Ice" ? 20 : 0;
@@ -336,13 +303,10 @@ function updateModalPrice() {
     modalPriceEl.textContent = `₱${total.toFixed(2)}`;
 }
     
-
-    // Modal controls wiring (size, special, qty, notes)
     sizeButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             sizeButtons.forEach(b => b.classList.remove("active"));
             btn.classList.add("active");
-            // dataset.size should already be "Regular" or "Tall"
             modalState.size = btn.dataset.size || btn.getAttribute('data-size') || "Regular";
             updateModalPrice();
         });
@@ -373,7 +337,6 @@ function updateModalPrice() {
         modalState.notes = e.target.value || "";
     });
 
-    // Modal cancel button closes the modal without adding to cart
     if (modalCancelBtn) {
         modalCancelBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -381,10 +344,7 @@ function updateModalPrice() {
         });
     }
 
-    // Add to cart confirm handler
     function handleAddConfirm(e) {
-        // Prevent duplicate execution from multiple handlers or rapid clicks.
-        // Time-based throttle: ignore calls within 600ms of the last call.
         const now = Date.now();
         if (handleAddConfirm._lastCall && (now - handleAddConfirm._lastCall) < 600) {
             console.debug && console.debug('handleAddConfirm: ignored due to rapid repeat');
@@ -392,23 +352,19 @@ function updateModalPrice() {
         }
         handleAddConfirm._lastCall = now;
 
-        // Re-entrancy guard shared across delegated and direct handlers
         if (isProcessingAdd) {
             console.debug && console.debug('handleAddConfirm: already processing, ignoring');
             return;
         }
         isProcessingAdd = true;
 
-        // Prevent duplicate execution: if the button is disabled, bail out.
         if (addConfirmBtn && addConfirmBtn.disabled) {
             console.debug && console.debug('handleAddConfirm: ignored because button is disabled');
             isProcessingAdd = false;
             return;
         }
-
-        // disable immediately to guard against duplicate handlers/clicks
+        
         try { if (addConfirmBtn) addConfirmBtn.disabled = true; } catch (err) { /* ignore */ }
-        // re-enable after short delay
         setTimeout(() => { try { if (addConfirmBtn) addConfirmBtn.disabled = false; } catch (err) { } }, 400);
         console.debug && console.debug('handleAddConfirm invoked, qty=', modalState.qty);
 
@@ -417,7 +373,6 @@ function updateModalPrice() {
             const product = PRODUCTS.find(p => p.id === modalState.productId);
             if (!product) return;
 
-            // Get base price based on selected size - now Regular/Tall
             let basePrice = 0;
             switch(modalState.size) {
                 case "Regular":
@@ -432,7 +387,6 @@ function updateModalPrice() {
             const noIceExtra = modalState.special === "No Ice" ? 20 : 0;
             const unitPrice = basePrice + noIceExtra;
 
-            // merge identical (product+size+special+notes)
             const existingIndex = cart.findIndex(item =>
                 item.productId === modalState.productId &&
                 item.size === modalState.size &&
@@ -440,7 +394,6 @@ function updateModalPrice() {
                 item.notes === modalState.notes
             );
 
-            // If editing an existing cart item, update it instead of adding new
             if (modalState && modalState.editingCartId) {
                 const editId = String(modalState.editingCartId);
                 const idxToEdit = cart.findIndex(i => String(i.cartId) === editId);
@@ -453,7 +406,7 @@ function updateModalPrice() {
                     cart[idxToEdit].unitPrice = unitPrice;
                     if (typeof showToast === 'function') showToast('success', 'Cart Updated', `${product.name} updated in your cart`);
                 } else {
-                    // fallback to add new if the original item no longer exists
+
                     cart.push({
                         cartId: Date.now() + Math.random(),
                         productId: modalState.productId,
@@ -467,7 +420,6 @@ function updateModalPrice() {
                     });
                     if (typeof showToast === 'function') showToast('success', 'Added to Cart', `${product.name} added to your order!`);
                 }
-                // clear editing flag after applying
                 try { delete modalState.editingCartId; } catch (err) { modalState.editingCartId = null; }
             } else if (existingIndex > -1) {
                 cart[existingIndex].qty += modalState.qty;
@@ -492,37 +444,29 @@ function updateModalPrice() {
         } catch (err) {
             console.error('Failed to add to cart:', err);
         } finally {
-            // ensure processing flag is cleared after a short delay to avoid races
             setTimeout(() => { try { isProcessingAdd = false; } catch (err) {} }, 300);
         }
     }
 
-    // Fallback: delegate click events for dynamically rendered buttons
     document.addEventListener('click', function (ev) {
         const target = ev.target.closest && ev.target.closest('#add-confirm-btn');
         if (!target) return;
         ev.preventDefault();
 
-        // If this button already has a direct handler attached (we set dataset.handlerAttached),
-        // skip the delegated invocation to avoid double-handling.
         try {
             if (target.dataset && target.dataset.handlerAttached === 'true') return;
         } catch (err) {
-            // ignore dataset access errors
+            
         }
-
-        // guard against re-entrancy or duplicate handlers
         if (isProcessingAdd) return;
         try {
             isProcessingAdd = true;
             handleAddConfirm(ev);
         } finally {
-            // small timeout to prevent accidental double-taps from UI
             setTimeout(() => { isProcessingAdd = false; }, 250);
         }
     });
 
-    // Update cart UI
     function updateCartUI() {
     cartItemsEl.innerHTML = "";
     let total = 0;
@@ -570,7 +514,6 @@ function updateModalPrice() {
         attachCartListeners();
     }
 
-    // Attach dynamic cart listeners
     function attachCartListeners() {
         document.querySelectorAll(".mini-increase").forEach(btn => {
             btn.onclick = () => {
@@ -622,12 +565,10 @@ function updateModalPrice() {
                                 text: 'Remove',
                                 type: 'primary',
                                 handler: () => {
-                                    // Remove the item, update UI and hide the confirmation
                                     cart.splice(idx, 1);
                                     updateCartUI();
                                     hidePopup();
 
-                                    // Show follow-up confirmation with OK button that closes modal and navigates to dashboard
                                     showPopup('success', {
                                         title: 'Item Removed',
                                         message: `${itemName} has been removed.`,
@@ -638,7 +579,6 @@ function updateModalPrice() {
                                                 handler: () => {
                                                     hidePopup();
                                                     try { closeModal(); } catch (err) { /* ignore */ }
-                                                    // navigate to dashboard to reflect cart changes clearly
                                                     window.location.href = 'customer_dashboard.html';
                                                 }
                                             }
@@ -657,16 +597,12 @@ function updateModalPrice() {
                 const id = btn.dataset.id;
                 const item = cart.find(i => `${i.cartId}` === id);
                 if (!item) return;
-                // Open modal and populate it for editing the existing cart item
-                // Set editingCartId so confirm handler knows to update instead of adding
                 modalState.editingCartId = item.cartId;
                 modalState.productId = item.productId;
                 modalState.size = item.size;
                 modalState.qty = item.qty;
                 modalState.special = item.special;
                 modalState.notes = item.notes || '';
-
-                // Populate modal UI (reuse the same fields as openModal)
                 const PRODUCTS = getMenuItems(); // Get synced menu
                 const product = PRODUCTS.find(p => p.id === item.productId);
                 if (modalImg) modalImg.src = item.img || (product && product.img) || '';
@@ -679,7 +615,6 @@ function updateModalPrice() {
                 specialButtons.forEach(b => b.classList.toggle('active', b.dataset.special === modalState.special));
                 updateModalPrice();
 
-                // Show modal using same approach as openModal
                 if (modalBackdrop) {
                     modalBackdrop.classList.remove('hidden');
                     modalBackdrop.style.display = 'flex';
@@ -690,7 +625,6 @@ function updateModalPrice() {
         });
     }
 
-    // Clear order with popup confirmation
     clearOrderBtn && clearOrderBtn.addEventListener("click", () => {
         if (cart.length === 0) {
             showPopup('info', {
@@ -721,7 +655,6 @@ function updateModalPrice() {
         });
     });
 
-    // Checkout with popup confirmation
     checkoutBtn && checkoutBtn.addEventListener("click", () => {
     if (cart.length === 0) {
         showPopup('warning', {
@@ -729,17 +662,15 @@ function updateModalPrice() {
         });
         return;
     }
-    // If not logged in, show inline login modal before continuing to checkout
     if (localStorage.getItem('isLoggedIn') !== 'true') {
-        // Show the inline login dialog which resumes checkout after successful login
+
         showLoginModal();
         return;
     }
 
     const total = cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
     const itemCount = cart.reduce((sum, item) => sum + item.qty, 0);
-    
-    // Prefer logged-in user info when available
+
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
 
     showPopup('success', {
@@ -755,7 +686,6 @@ function updateModalPrice() {
                 text: 'Place Order',
                 type: 'primary',
                 handler: () => {
-                    // Prefer currentUser values when present, otherwise read from inputs
                     const storedUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
                     const customerName = (storedUser && storedUser.name) ? storedUser.name : (document.getElementById('customer-name-input')?.value || 'Walk-in Customer');
                     const customerUsername = (storedUser && storedUser.username) ? storedUser.username : (document.getElementById('customer-username-input')?.value || '');
@@ -767,8 +697,6 @@ function updateModalPrice() {
                         alert('Please enter your name to place the order.');
                         return;
                     }
-
-                    // Create order object, include user identity fields
                     const order = {
                         id: generateOrderId(),
                         customerName: customerName.trim(),
@@ -791,11 +719,7 @@ function updateModalPrice() {
                         date: new Date().toLocaleDateString(),
                         time: new Date().toLocaleTimeString()
                     };
-
-                    // Save order to localStorage
                     saveOrder(order);
-
-                    // Clear cart after successful checkout
                     cart = [];
                     updateCartUI();
                     hidePopup();
@@ -804,7 +728,6 @@ function updateModalPrice() {
                 }
             }
         ],
-        // Add form fields for customer information; if logged-in, show their details and allow editing
         customContent: `
             <div class="customer-info-form" style="margin: 15px 0;">
                 ${currentUser && currentUser.name ? `
@@ -848,35 +771,27 @@ function updateModalPrice() {
 }
 
     function saveOrder(order) {
-        // Save order to orders list
         const orders = JSON.parse(localStorage.getItem("jessie_orders") || "[]");
         orders.push(order);
         localStorage.setItem("jessie_orders", JSON.stringify(orders));
 
-        // Ensure sales summary reflects the new pending order count so cashier metrics stay up-to-date
         const sales = JSON.parse(localStorage.getItem("jessie_sales") || "{}");
         sales.totalSales = sales.totalSales || 0;
         sales.totalOrders = (sales.totalOrders || 0) + 1;
         sales.pendingOrders = (sales.pendingOrders || 0) + 1;
-        // approvedOrders remains unchanged here
-        localStorage.setItem("jessie_sales", JSON.stringify(sales));
 
-        // order saved (silent) - no verbose logging in production
+        localStorage.setItem("jessie_sales", JSON.stringify(sales));
 }
 
-    // Modal close events (close button and backdrop click)
     modalClose && modalClose.addEventListener("click", closeModal);
     modalBackdrop && modalBackdrop.addEventListener("click", (e) => {
-        // if backdrop itself clicked (not the inner modal), close
         if (e.target === modalBackdrop) closeModal();
     });
-
-    // Initialize UI
+    
     initializeDefaultMenuItems();
     renderProducts();
     updateCartUI();
 
-    // Delegated fallback: if per-card add-btn listeners fail to attach, this will still open the modal
     document.addEventListener('click', function delegatedAddBtn(e) {
         try {
             const btn = e.target.closest && e.target.closest('.add-btn');
@@ -886,37 +801,29 @@ function updateModalPrice() {
             const id = btn.getAttribute('data-id') || btn.dataset.id;
             if (id) openModal(id);
         } catch (err) {
-            // keep silent but report critical errors
             console.error('delegatedAddBtn error:', err);
         }
     });
 
-        // modal element presence check removed (no verbose logs)
-
-    // Initialize the modal as hidden on load
     if (modalBackdrop) {
         modalBackdrop.style.display = "none";
         modalBackdrop.classList.add("hidden");
     }
 
-    // Rest of your initialization code...
     renderProducts();
     updateCartUI();
 });
 
-// Merge admin menu updates with existing default layout when localStorage changes (cross-tab)
 window.addEventListener('storage', (e) => {
     if (e.key !== 'jessie_menu') return;
     try {
         const incoming = JSON.parse(e.newValue || '[]');
 
-        // If incoming is not array or empty, just re-render (no change)
         if (!Array.isArray(incoming) || incoming.length === 0) {
             renderProducts();
             return;
         }
 
-        // Merge strategy: start from DEFAULT_MENU_ITEMS (ensure ids), overlay incoming items by id first then name, append new items
         const merged = DEFAULT_MENU_ITEMS.slice().map((it, idx) => Object.assign({}, it, { id: it.id || idx + 1 }));
         const byId = {};
         const byName = {};
@@ -967,21 +874,6 @@ window.addEventListener('storage', (e) => {
     }
 });
 
-// Note: menu rendering is handled by renderProducts() above.
-
-
-// Helper function to validate images
-// utility functions retained elsewhere in the app; removed duplicate helpers here to reduce noise
-
-// NOTE: Initialization (login guard, logout wiring, and UI setup) is handled
-// inside the primary DOMContentLoaded listener earlier in this file. The
-// duplicate initialization block that referenced undefined helpers was removed
-// to avoid cross-scope errors and prevent the modal/add-to-cart flow from
-// breaking.
-
-// Debug and sync functions
-// Removed debug/test utilities (checkDrinksSync, forceRefreshMenu, clearAllMenuData)
-    // Enhanced showPopup function to support custom content
 function showPopup(type, options) {
     const popup = document.createElement('div');
     popup.className = 'popup-overlay';
@@ -989,28 +881,24 @@ function showPopup(type, options) {
     const inner = document.createElement('div');
     inner.className = `popup popup-${type}`;
 
-    // Title
     if (options.title) {
         const h = document.createElement('h3');
         h.textContent = options.title;
         inner.appendChild(h);
     }
 
-    // Message
     if (options.message) {
         const p = document.createElement('p');
         p.textContent = options.message;
         inner.appendChild(p);
     }
 
-    // Custom content (may be HTML string)
     if (options.customContent) {
         const wrapper = document.createElement('div');
         wrapper.innerHTML = options.customContent;
         inner.appendChild(wrapper);
     }
 
-    // Actions container
     const actionsContainer = document.createElement('div');
     actionsContainer.className = 'popup-actions';
 
@@ -1019,7 +907,6 @@ function showPopup(type, options) {
             const btn = document.createElement('button');
             btn.className = `btn btn-${action.type}`;
             btn.textContent = action.text || 'Action';
-            // Attach handler directly (preserves closure scope)
             if (typeof action.handler === 'function') {
                 btn.addEventListener('click', (e) => action.handler(e));
             }
@@ -1031,7 +918,6 @@ function showPopup(type, options) {
     popup.appendChild(inner);
     document.body.appendChild(popup);
 
-    // Add click handler for backdrop to close when clicking outside the popup
     popup.addEventListener('click', function(e) {
         if (e.target === popup) {
             hidePopup();
@@ -1043,18 +929,12 @@ function hidePopup() {
     const popup = document.querySelector('.popup-overlay');
     if (popup) popup.remove();
 }
-
-// Removed test helpers (testModal, openModalForTest) and their global exposures
-
-    // Expose placeOrder/closeCheckout into the main scope so they have access
-    // to `cart`, `generateOrderId` and `saveOrder` defined above.
     function closeCheckout() {
         const modal = document.getElementById('checkout-modal');
         if (modal) modal.style.display = 'none';
     }
 
     function placeOrder() {
-        // Prefer inputs from popup (customer-name-input) but fallback to static modal inputs
         const nameInput = document.getElementById('customer-name-input') || document.getElementById('customer-name');
         const phoneInput = document.getElementById('customer-phone-input') || document.getElementById('customer-phone');
         const notesInputEl = document.getElementById('customer-notes-input') || document.getElementById('customer-notes');
@@ -1091,23 +971,17 @@ function hidePopup() {
             date: new Date().toLocaleDateString(),
             time: new Date().toLocaleTimeString()
         };
-
-        // Save and cleanup
         saveOrder(order);
         cart = [];
         updateCartUI();
 
-        // Close either popup or static modal
         hidePopup();
         closeCheckout();
 
         if (typeof showToast === 'function') showToast('success', 'Order Placed!', `Your order #${order.id} has been received!`);
     }
 
-    // Expose to global scope for inline onclick handlers
     window.placeOrder = placeOrder;
     window.closeCheckout = closeCheckout;
-
-    // Initialize UI
     renderProducts();
     updateCartUI();
