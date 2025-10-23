@@ -13,87 +13,8 @@ html, body {
   overflow-x: hidden; /* Changed from hidden to avoid horizontal scroll issues */
 }
 
-/* HEADER */
-header {
-    background-color: #2E5D47;
-    color: #2E5D47;
-    text-align: center;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 50px;
-    height: 50px;
-}  
 
-.left-header {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-#drink_logo {
-  height: 55px;
-  width: 100px;
-}
-
-.right-header {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-right: 5px;
-}
-
-.nav-btn {
-  position: relative;
-  text-decoration: none;
-  color: #FAF9F4;
-  font-weight: 600;
-  padding: 8px 15px;
-  border-radius: 8px;
-  transition: color 0.3s ease, background-color 0.3s ease;
-  overflow: hidden;
-}
-
-.nav-btn::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 0;
-  height: 2px;
-  background-color: #E5C100;
-  transition: all 0.3s ease;
-  transform: translateX(-50%);
-}
-
-.nav-btn:hover::after {
-  width: 60%;
-}
-
-.nav-btn:hover {
-  color: #FCF2C5;
-}
-
-.nav-btn.active {
-  color: #FCF2C5;
-  background-color: transparent;
-  box-shadow: none;
-}
-
-.nav-btn.active::after {
-  content: "";
-  position: absolute;
-  bottom: 0;
-  left: 50%;
-  width: 60%;
-  height: 2px;
-  background-color: #E5C100;
-  transform: translateX(-50%);
-  transition: all 0.3s ease;
-}
+/* header rules moved to header.css */
 
 /* MAIN */
 main {
@@ -258,19 +179,8 @@ main {
   animation: shake 0.5s ease-in-out;
 }
 
-/* RESPONSIVE */
+/* RESPONSIVE - page specific rules remain; header responsive behavior provided by header.css */
 @media (max-width: 480px) {
-  header {
-    padding: 8px 20px;
-    flex-wrap: wrap;
-    height: auto;
-  }
-  
-  .right-header {
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-  
   .login-container, .register-container {
     width: 90%;
     padding: 20px;
