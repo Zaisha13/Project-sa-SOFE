@@ -1,15 +1,10 @@
-// admin.js - extracted from admin.html
-
-// Authentication temporarily bypassed for development/testing.
-// The admin dashboard will initialize immediately without requiring login.
+// admin.js //
 document.addEventListener('DOMContentLoaded', function() {
-    // NOTE: Previously this required a logged-in admin. That check is intentionally disabled now.
     initializeAdminDashboard();
 });
 
-// Lightweight popup/toast helpers (self-contained so admin page doesn't depend on other pages)
 function showPopup(type, options = {}) {
-    // Remove any existing popup
+
     hidePopup();
     const popup = document.createElement('div');
     popup.className = 'popup-overlay';
@@ -45,7 +40,6 @@ function showPopup(type, options = {}) {
             actionsContainer.appendChild(btn);
         });
     } else {
-        // Default action: Close
         const btn = document.createElement('button');
         btn.className = 'btn btn-primary';
         btn.textContent = 'Close';
@@ -57,12 +51,10 @@ function showPopup(type, options = {}) {
     popup.appendChild(inner);
     document.body.appendChild(popup);
 
-    // allow clicking on backdrop to close if allowed
     if (options.backdrop !== false) {
         popup.addEventListener('click', function(e){ if (e.target === popup) hidePopup(); });
     }
 
-    // focus first input if present
     setTimeout(()=>{
         const firstInput = popup.querySelector('input, button, select, textarea');
         if (firstInput) firstInput.focus();
@@ -75,7 +67,6 @@ function hidePopup(){
 }
 
 function showToast(type='info', title='', message=''){
-    // simple toast bubble similar to other pages
     const t = document.createElement('div');
     t.className = `toast toast-${type}`;
     t.innerHTML = title ? `<strong>${title}</strong><div>${message}</div>` : (message || title || '');
@@ -115,7 +106,6 @@ function initializeAdminDashboard() {
     const menuGrid = document.getElementById('menu-grid');
     const noMenuMessage = document.getElementById('no-menu-message');
 
-    // Focus management for modal: remember last focused element and restore on close
     let _lastFocused = null;
     function modalKeyHandler(e){ if (e.key === 'Escape') closeMenuModal(); }
     function openMenuModal(){
@@ -130,22 +120,17 @@ function initializeAdminDashboard() {
         try { if (_lastFocused && typeof _lastFocused.focus === 'function') _lastFocused.focus(); } catch(e){}
     }
     
-    // Account Management Elements
     const createAccountForm = document.getElementById('create-account-form');
     const accountsList = document.getElementById('accounts-list');
     
-    // Dashboard Elements
     const announcementForm = document.getElementById('announcement-form');
     const announcementsList = document.getElementById('announcements-list');
     
-    // Settings Elements
     const generalSettingsForm = document.getElementById('general-settings-form');
     const notificationSettingsForm = document.getElementById('notification-settings-form');
     const backupBtn = document.getElementById('backup-btn');
     const clearCacheBtn = document.getElementById('clear-cache-btn');
     const clearLogsBtn = document.getElementById('clear-logs-btn');
-    
-    // Storage Keys
     const MENU_STORAGE_KEY = "jessieCaneMenu";
     const ACCOUNTS_STORAGE_KEY = "jessieCaneAccounts";
     const ANNOUNCEMENTS_STORAGE_KEY = "jessieCaneAnnouncements";
@@ -154,9 +139,8 @@ function initializeAdminDashboard() {
                 
     const DEFAULT_IMAGE = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='%23FFD966'/><text x='50' y='55' font-size='30' fill='%23146B33' text-anchor='middle'>JC</text></svg>";
 
-    // Canonical default menu items (12 items provided by admin)
     const DEFAULT_MENU_ITEMS = [
-        { id: 1, name: 'Pure Sugarcane', description: 'Freshly pressed sugarcane juice in its purest form — naturally sweet, refreshing, and energizing with no added sugar or preservatives.', priceRegular: 79, priceTall: 109, img: 'images/pure-sugarcane.png' },
+        { id: 1, name: 'Pure Sugarcane', description: 'Freshly pressed sugarcane juice in its purest form — naturally sweet, refreshing, and energizing with no added sugar or preservatives.', priceRegular: 79, priceTall: 109, img: '../customer_portal-main/images/pure-sugarcane.png' },
         { id: 2, name: 'Calamansi Cane', description: 'A zesty twist on classic sugarcane juice, blended with the tangy freshness of calamansi for a perfectly balanced sweet and citrusy drink.', priceRegular: 89, priceTall: 119, img: 'images/calamansi-cane.png' },
         { id: 3, name: 'Lemon Cane', description: 'Freshly squeezed lemon combined with pure sugarcane juice, creating a crisp and revitalizing drink that awakens your senses.', priceRegular: 89, priceTall: 119, img: 'images/lemon-cane.png' },
         { id: 4, name: 'Yakult Cane', description: 'A delightful mix of sugarcane juice and Yakult — smooth, creamy, and packed with probiotics for a unique sweet-tangy flavor.', priceRegular: 89, priceTall: 119, img: 'images/yakult-cane.png' },
@@ -170,7 +154,13 @@ function initializeAdminDashboard() {
         { id: 12, name: 'Dragon Fruit Cane', description: 'A vibrant blend of dragon fruit and pure sugarcane juice — visually stunning, naturally sweet, and loaded with antioxidants.', priceRegular: 119, priceTall: 149, img: 'images/dragon-fruit-cane.png' }
     ];
 
-    // Set welcome message
+    function resolveImagePath(path) {
+        if (!path) return DEFAULT_IMAGE; 
+        if (path.startsWith('data:') || path.startsWith('http://') || path.startsWith('https://') || path.startsWith('../')) return path;
+        if (path.startsWith('images/')) return '../customer_portal-main/' + path;
+        return path;
+    }
+
     const sessionUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
     if (sessionUser.name) {
         welcomeMessage.textContent = `Welcome, ${sessionUser.name}!`;
@@ -181,10 +171,8 @@ function initializeAdminDashboard() {
     function syncMenuToCustomerDashboard() {
         const adminMenu = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || "[]");
 
-        // Build a merged menu: start from canonical defaults, ensure ids, overlay admin items by id first, then by name; append new admin items with new ids
         const merged = DEFAULT_MENU_ITEMS.slice().map((item, idx) => Object.assign({}, item, { id: item.id || idx + 1 }));
 
-        // build lookup by id and by name
         const byId = {};
         const byName = {};
         merged.forEach(it => {
@@ -192,11 +180,11 @@ function initializeAdminDashboard() {
             if (it.name) byName[(it.name || '').toLowerCase()] = it;
         });
 
-        // find current max id to assign new ids
         let maxId = merged.reduce((m, it) => Math.max(m, (it.id || 0)), 0);
 
         (Array.isArray(adminMenu) ? adminMenu : []).forEach(aItem => {
-            const finalImage = aItem.image || aItem.img || DEFAULT_IMAGE;
+            const rawImage = aItem.image || aItem.img || DEFAULT_IMAGE;
+            const finalImage = resolveImagePath(rawImage);
             const migratedRegular = (typeof aItem.priceRegular === 'number') ? aItem.priceRegular : (parseFloat(aItem.priceRegular) || parseFloat(aItem.priceSmall) || 0);
             const migratedTall = (typeof aItem.priceTall === 'number') ? aItem.priceTall : (parseFloat(aItem.priceTall) || parseFloat(aItem.priceMedium) || parseFloat(aItem.priceLarge) || migratedRegular);
 
@@ -208,23 +196,19 @@ function initializeAdminDashboard() {
                 img: finalImage
             };
 
-            // prefer id-based overlay
             if (aItem.id && byId[aItem.id]) {
                 const existing = byId[aItem.id];
                 Object.assign(existing, normalized);
             } else if (aItem.id) {
-                // id present but new - add it
                 normalized.id = aItem.id;
                 merged.push(normalized);
                 byId[normalized.id] = normalized;
                 byName[(normalized.name||'').toLowerCase()] = normalized;
                 maxId = Math.max(maxId, normalized.id || 0);
             } else if (aItem.name && byName[(aItem.name||'').toLowerCase()]) {
-                // match by name
                 const existing = byName[(aItem.name||'').toLowerCase()];
                 Object.assign(existing, normalized);
             } else {
-                // new item - assign id
                 maxId++;
                 normalized.id = maxId;
                 merged.push(normalized);
@@ -233,7 +217,6 @@ function initializeAdminDashboard() {
             }
         });
 
-        // Ensure every item has a stable numeric id (preserve existing ids where present)
         const finalForCustomer = merged.map(it => {
             if (!it.id) {
                 maxId++;
@@ -242,21 +225,18 @@ function initializeAdminDashboard() {
             return it;
         });
 
-        // Persist merged arrays back to admin storage and customer storage (identical arrays)
         localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(finalForCustomer));
         localStorage.setItem(CUSTOMER_MENU_KEY, JSON.stringify(finalForCustomer));
 
         showToast('success','Menu updated', `Menu updated and synced to customer dashboard. ${finalForCustomer.length} items available.`);
     }
 
-    // Update menu and sync
     function updateMenuAndSync() {
         renderMainGrid();
         renderModalList();
         syncMenuToCustomerDashboard();
     }
 
-    // Logout functionality
     logoutBtn.addEventListener('click', () => {
         showPopup('warning', {
             title: 'Confirm Logout',
@@ -270,7 +250,6 @@ function initializeAdminDashboard() {
 
     // --- NAVIGATION LOGIC ---
     function switchSection(sectionId) {
-        // Update active nav link
         sidebarLinks.forEach(link => {
             if (link.getAttribute('data-section') === sectionId) {
                 link.classList.add('active');
@@ -278,8 +257,7 @@ function initializeAdminDashboard() {
                 link.classList.remove('active');
             }
         });
-        
-        // Show active section
+
         contentSections.forEach(section => {
             if (section.id === sectionId) {
                 section.classList.add('active');
@@ -287,8 +265,7 @@ function initializeAdminDashboard() {
                 section.classList.remove('active');
             }
         });
-        
-        // Update page title
+
         const sectionTitles = {
             'dashboard': 'Dashboard',
             'menu-management': 'Menu Management',
@@ -297,25 +274,22 @@ function initializeAdminDashboard() {
             'sales-report': 'Sales Report'
         };
         pageTitle.textContent = sectionTitles[sectionId];
-        
-        // Load section-specific data
+
         if (sectionId === 'menu-management') {
             renderMainGrid();
         } else if (sectionId === 'account-management') {
             renderAccountsList();
         } else if (sectionId === 'sales-report') {
-            // no additional render required; iframe loads cashier
+
         }
     }
 
-    // Add event listeners to nav links
     sidebarLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             e.preventDefault();
             const sectionId = link.getAttribute('data-section');
             switchSection(sectionId);
-            
-            // Close sidebar on mobile
+
             if (window.innerWidth < 768) {
                 toggleSidebar();
             }
@@ -348,13 +322,11 @@ function initializeAdminDashboard() {
                     content,
                     date: new Date().toLocaleDateString()
                 };
-                
-                // Save to localStorage
+
                 const announcements = JSON.parse(localStorage.getItem(ANNOUNCEMENTS_STORAGE_KEY) || '[]');
                 announcements.unshift(announcement);
                 localStorage.setItem(ANNOUNCEMENTS_STORAGE_KEY, JSON.stringify(announcements));
-                
-                // Update UI
+
                 renderAnnouncements();
                 showToast('success','Announcement posted','Announcement posted successfully!');
                 announcementForm.reset();
@@ -395,7 +367,6 @@ function initializeAdminDashboard() {
             const role = document.getElementById('account-role').value;
             
             if (username && password) {
-                // Check if username already exists
                 const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || '[]');
                 const existingUser = accounts.find(acc => acc.username === username);
                 
@@ -403,8 +374,7 @@ function initializeAdminDashboard() {
                     showToast('error','Duplicate','Username already exists. Please choose a different username.');
                     return;
                 }
-                
-                // Create new account
+
                 const newAccount = {
                     username,
                     password,
@@ -413,8 +383,7 @@ function initializeAdminDashboard() {
                 
                 accounts.push(newAccount);
                 localStorage.setItem(ACCOUNTS_STORAGE_KEY, JSON.stringify(accounts));
-                
-                // Update UI
+
                 renderAccountsList();
                 showToast('success','Account created', `${role} account created successfully!`);
                 createAccountForm.reset();
@@ -449,8 +418,7 @@ function initializeAdminDashboard() {
                 `;
                 accountsList.appendChild(row);
             });
-            
-            // Add event listeners to action buttons
+
             document.querySelectorAll('.edit-account-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const index = parseInt(this.getAttribute('data-index'));
@@ -471,7 +439,6 @@ function initializeAdminDashboard() {
         const accounts = JSON.parse(localStorage.getItem(ACCOUNTS_STORAGE_KEY) || '[]');
         const account = accounts[index];
 
-        // Build custom form inside popup
         const html = `
             <div style="display:flex;flex-direction:column;gap:8px;">
               <label>Username<br/><input id="admin-edit-username" value="${(account.username||'').replace(/\"/g,'&quot;')}" /></label>
@@ -499,7 +466,6 @@ function initializeAdminDashboard() {
                 } }
             ]
         });
-        // set select value after popup created
         setTimeout(()=>{
             const sel = document.getElementById('admin-edit-role'); if (sel) sel.value = account.role || 'Customer';
         },50);
@@ -559,11 +525,9 @@ function initializeAdminDashboard() {
         });
     }
 
-    // System buttons functionality
     if (backupBtn) {
         backupBtn.addEventListener('click', () => {
             showToast('info','Backup','Database backup initiated!');
-            // Simulate backup process
             setTimeout(() => {
                 document.getElementById('last-backup').textContent = new Date().toLocaleString();
                 showToast('success','Backup','Backup completed successfully!');
@@ -583,7 +547,6 @@ function initializeAdminDashboard() {
         });
     }
 
-    // Load saved settings
     function loadSettings() {
         const settings = JSON.parse(localStorage.getItem(SETTINGS_STORAGE_KEY) || '{}');
         
@@ -602,12 +565,9 @@ function initializeAdminDashboard() {
     }
 
     // --- MENU MANAGEMENT FUNCTIONALITY ---
-
-    // Function to render menu items in the main grid
     const renderMainGrid = () => {
         if (!menuGrid) return;
         
-        // Prefer admin-stored menu; if empty, show defaults
         const stored = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
         const menuItems = (Array.isArray(stored) && stored.length > 0) ? stored : DEFAULT_MENU_ITEMS;
         menuGrid.innerHTML = '';
@@ -618,7 +578,7 @@ function initializeAdminDashboard() {
             noMenuMessage.classList.add('hidden');
             menuItems.forEach(item => {
                 const card = document.createElement('div');
-                const imageUrl = item.img || item.image || DEFAULT_IMAGE;
+                    const imageUrl = resolveImagePath(item.img || item.image || DEFAULT_IMAGE);
                 
                 card.className = 'menu-card p-6 rounded-3xl shadow-xl text-center transition-transform duration-300 hover:scale-[1.03] hover:shadow-2xl';
                 
@@ -643,10 +603,8 @@ function initializeAdminDashboard() {
         }
     };
 
-    // Function to render menu items in the modal list for editing
     const renderModalList = () => {
         if (!menuList) return;
-        // Prefer admin-stored menu; fallback to defaults so admin can edit defaults
         const stored = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
         const menuItems = (Array.isArray(stored) && stored.length > 0) ? stored : DEFAULT_MENU_ITEMS.slice();
         menuList.innerHTML = '';
@@ -682,7 +640,6 @@ function initializeAdminDashboard() {
         }
     };
 
-    // Handles opening the modal for editing
     const handleEdit = (id) => {
         const menuItems = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
         const item = menuItems.find(mi => Number(mi.id) === Number(id));
@@ -691,16 +648,14 @@ function initializeAdminDashboard() {
         modalTitle.textContent = "Edit Menu Item";
         addItemForm.style.display = 'block';
         menuContainer.style.display = 'none';
-        
-        // Set form data
+
         itemNameInput.value = item.name;
         itemDescInput.value = item.description;
         document.getElementById('item-price-regular').value = item.priceRegular || item.priceSmall || '';
         document.getElementById('item-price-tall').value = item.priceTall || item.priceMedium || item.priceLarge || '';
         itemImageDataInput.value = item.image || item.img || ''; 
-        itemImageInput.value = ''; // Clear file input
-        
-        // Set up form for editing
+        itemImageInput.value = '';
+
         addItemForm.setAttribute('data-editing-id', id);
         saveItemBtn.innerHTML = '<i class="fa-solid fa-save mr-2"></i> Update Item';
         deleteItemOnEditBtn.style.display = 'block';
@@ -709,7 +664,6 @@ function initializeAdminDashboard() {
         menuModal.style.display = 'flex';
     }
 
-    // Handles deletion of an item
     const handleDelete = (id) => {
         const menuItems = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
         const index = menuItems.findIndex(mi => Number(mi.id) === Number(id));
@@ -725,7 +679,6 @@ function initializeAdminDashboard() {
                 { text: 'Delete', type: 'primary', handler: () => {
                     menuItems.splice(index, 1);
                     localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuItems));
-                    // Hide modal if deleting from the edit form or list view is active
                     closeMenuModal();
                     showToast('success','Removed', `"${removedName}" removed successfully.`);
                     updateMenuAndSync();
@@ -734,7 +687,6 @@ function initializeAdminDashboard() {
         });
     }
 
-    // Handles form submission (Add or Edit)
     const handleFormSubmit = (e) => {
         e.preventDefault();
         
@@ -752,15 +704,11 @@ function initializeAdminDashboard() {
                 priceTall: parseFloat(document.getElementById('item-price-tall').value),
                 image: newImageData
             };
-            
-            // Validate prices
+
             if (newItem.priceRegular <= 0 || newItem.priceTall <= 0) {
                 showToast('error','Invalid prices','Please enter positive prices for Regular and Tall');
                 return;
             }
-            
-            // Validate positive prices
-            // basic positivity above
             
             if (isEditing) {
                 showPopup('warning', {
@@ -769,22 +717,17 @@ function initializeAdminDashboard() {
                     actions: [
                         { text: 'Cancel', type: 'secondary', handler: hidePopup },
                         { text: 'Apply', type: 'primary', handler: () => {
-                            // proceed with update
-                            // ensure both image keys exist for cross-page compatibility
                             newItem.img = newItem.image || '';
-                            // locate item index by id
                             const editIndex = menuItems.findIndex(mi => String(mi.id) === String(editingId));
                             if (editIndex === -1) {
                                 showToast('error','Not found','Failed to locate the item to update. It may have been removed.');
                                 return;
                             }
-                            // preserve id
                             newItem.id = menuItems[editIndex].id || editingId;
                             menuItems[editIndex] = newItem;
                             localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menuItems));
                             showToast('success','Updated', `"${newItem.name}" updated successfully!`);
 
-                            // reset editing marker
                             addItemForm.setAttribute('data-editing-id', '-1');
                             closeMenuModal();
                             updateMenuAndSync();
@@ -792,11 +735,9 @@ function initializeAdminDashboard() {
                     ]
                 });
                 return; 
-            } else {
-                // Create Logic
-                // ensure both image keys exist for cross-page compatibility
+            } else {    
+              
                 newItem.img = newItem.image || '';
-                // assign stable id
                 const existingIds = (menuItems || []).map(i => Number(i.id || 0)).filter(Boolean);
                 const nextId = existingIds.length ? Math.max(...existingIds) + 1 : 1;
                 newItem.id = nextId;
@@ -812,7 +753,7 @@ function initializeAdminDashboard() {
 
         const file = itemImageInput.files[0];
         if (file) {
-            // Handle new image upload
+           
             if (file.size > 500 * 1024) {
                 showToast('error','Image too large','Image file is too large. Please use an image under 500KB.');
                 return;
@@ -823,12 +764,11 @@ function initializeAdminDashboard() {
             };
             reader.readAsDataURL(file);
         } else {
-            // No new file uploaded, use existing image data (for edit) or default (for add)
             finalizeSave();
         }
     };
 
-    // --- EVENT LISTENERS FOR MENU MANAGEMENT ---
+
 
     if (addItemBtn) {
         addItemBtn.addEventListener('click', () => {
@@ -872,7 +812,6 @@ function initializeAdminDashboard() {
         addItemForm.addEventListener('submit', handleFormSubmit);
     }
 
-    // Event listener delegation for the list container
     if (menuList) {
         menuList.addEventListener('click', (e) => {
             const deleteButton = e.target.closest('.remove-item-btn');
@@ -932,14 +871,12 @@ function initializeAdminDashboard() {
         }
     }
 
-    // Load initial data
     initializeDefaultData();
     renderAnnouncements();
     renderAccountsList();
     loadSettings();
     renderMainGrid();
     
-    // Start with dashboard section
     switchSection('dashboard');
 
 }
