@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Jessie Cane Juicebar Branch Dashboard</title>
+  <link rel="stylesheet" href="cashier.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div class="app">
+
+  <!-- PURPOSE: Sidebar navigation — primary dashboard navigation links and logout control -->
+    <aside class="sidebar" aria-label="Main Navigation">
+      <div>
+        <div class="brand">
+          <!-- Logo -->
+          <img src="logo.png" alt="Jessie Cane Logo" onerror="this.style.display='none'">
+          <div>
+            <h1>Jessie Cane Juicebar</h1>
+            <p style="font-size:12px;">Branch Dashboard</p>
+          </div>
+        </div>
+
+        <nav class="nav" id="nav">
+          <a href="#orders" class="active" data-target="orders"><i class="fa-solid fa-list-check"></i><span>Order Management</span></a>
+          <a href="#inventory" data-target="inventory"><i class="fa-solid fa-boxes-stacked"></i><span>Inventory Management</span></a>
+          <a href="#reports" data-target="reports"><i class="fa-solid fa-chart-line"></i><span>Sales Reporting</span></a>
+          <a href="#receipts" data-target="receipts"><i class="fa-solid fa-receipt"></i><span>Receipts</span></a>
+          <a href="#customers" data-target="customers"><i class="fa-solid fa-people-group"></i><span>Customer Handling</span></a>
+          <a href="#notifications" data-target="notifications"><i class="fa-solid fa-bell"></i><span>Notifications</span></a>
+          <a href="#discounts" data-target="discounts"><i class="fa-solid fa-tags"></i><span>Discounts / Promos</span></a>
+        </nav>
+      </div>
+
+      <div class="bottom">
+        <div style="display:flex;gap:10px;align-items:center;flex-direction:column;">
+          <div style="font-size:12px;color:var(--muted);text-align:center;">
+            Signed in as <strong style="color:var(--green-700)" id="cashier-name">Cashier User</strong>
+          </div>
+          <button class="logout-btn" id="logoutBtn">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- PURPOSE: Main content area — houses topbar, grid of dashboard cards (orders, inventory, reports, etc.) -->
+    <main class="main">
+      <header class="topbar">
+        <div class="page-title">
+          <h2>Jessie Cane Juicebar Branch Dashboard</h2>
+          <p class="muted">Restricted Access • Manage orders, inventory, and reports</p>
+        </div>
+
+        <div class="controls right">
+          <input class="search-input" placeholder="Search orders, customers..." id="searchInput" />
+          <button class="btn btn--primary small" id="newItemBtn"><i class="fa-solid fa-plus"></i> New</button>
+        </div>
+      </header>
+
+      <section class="grid">
+
+  <!-- PURPOSE: Orders card — list of incoming orders, actions (approve/cancel), and quick controls -->
+  <div class="card col-12" id="orders">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+            <div>
+              <h3 style="margin:0">Order Management</h3>
+              <p class="muted" style="margin:4px 0 0 0;">Approve/cancel orders, update status.</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <button id="clearOrdersBtn" class="btn btn--outline small" style="background:#fff;">Clear Order List</button>
+            </div>
+          </div>
+
+          <table style="margin-top:14px;">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Drink(s)</th>
+                <th>Size</th>
+                <th>Special Instruction</th>
+                <th>Status</th>
+                <th>Actions</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody id="ordersTbody">
+              <tr id="no-orders" style="display:none;">
+                <td colspan="8" class="muted">No orders available.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+  <!-- PURPOSE: Inventory card — manage stock in/out and generate branch reports -->
+  <div class="card col-6" id="inventory" style="margin-top:6px;">
+          <h3>Inventory Management</h3>
+          <p class="muted">Stock-in/out, auto/manual updates, branch reports.</p>
+
+          <table style="margin-top:12px;">
+            <thead>
+              <tr><th>Item</th><th>Stock Level</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Pure Sugarcane</td>
+                <td>50</td>
+                <td>
+                  <button class="btn btn--outline small" onclick="stockIn('Pure Sugarcane')">Stock In</button>
+                  <button class="btn btn--outline small" onclick="stockOut('Pure Sugarcane')">Stock Out</button>
+                </td>
+              </tr>
+              <tr>
+                <td>Lemon Cane</td>
+                <td>32</td>
+                <td>
+                  <button class="btn btn--outline small" onclick="stockIn('Lemon Cane')">Stock In</button>
+                  <button class="btn btn--outline small" onclick="stockOut('Lemon Cane')">Stock Out</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div style="margin-top:12px;">
+            <button class="btn btn--primary small" onclick="generateReport()"><i class="fa-solid fa-file-lines"></i> Generate Branch Report</button>
+          </div>
+        </div>
+
+  <!-- PURPOSE: Reports card — display sales summary and quick access to detailed reports -->
+  <div class="card col-6" id="reports" style="margin-top:6px;">
+          <h3>Sales Reporting</h3>
+          <p class="muted">Daily summary reports.</p>
+
+          <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+            <div>
+              <div style="font-size:28px;font-weight:800;color:var(--green-700)"><span id="total-sales"></span>₱0.00</span></div>
+              <div class="muted">Total Sales Today</div>
+              <div style="margin-top:8px; font-size:13px; color:var(--muted)">
+                Orders: <strong id="total-orders">0</strong>
+                &nbsp;•&nbsp; Pending: <strong id="pending-orders">0</strong>
+                &nbsp;•&nbsp; Approved: <strong id="approved-orders">0</strong>
+              </div>
+            </div>
+            <div class="right">
+              <button class="btn btn--primary small" onclick="viewDetailedReport()"><i class="fa-solid fa-chart-pie"></i> View Detailed Report</button>
+            </div>
+          </div>
+        </div>
+
+  <!-- PURPOSE: Receipts card — form to email receipts to customers -->
+  <div class="card col-4" id="receipts" style="margin-top:6px;">
+          <h3>Receipts</h3>
+          <p class="muted">Email online receipts to customers.</p>
+
+          <form style="margin-top:12px;" id="receiptForm">
+            <label class="muted" for="email">Customer Email:</label>
+            <input id="email" type="email" placeholder="Enter email" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(0,0,0,0.06); margin-top:6px;" required />
+            <button class="btn btn--primary" type="submit" style="margin-top:10px;"><i class="fa-solid fa-envelope"></i> Send Receipt</button>
+          </form>
+        </div>
+
+  <!-- PURPOSE: Customers card — view basic customer information and quick lookups -->
+  <div class="card col-8" id="customers" style="margin-top:6px;">
+          <h3>Customer Handling</h3>
+          <p class="muted">View basic customer info.</p>
+
+          <table style="margin-top:12px;">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Phone</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Rudge Lompon</td><td>rudge@example.com</td><td>123-456-7890</td></tr>
+              <tr><td>Simon Cruz</td><td>simon@example.com</td><td>098-765-4321</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+  <!-- PURPOSE: Notifications card — create and view branch/customer notifications -->
+  <div class="card col-6" id="notifications" style="margin-top:6px;">
+          <h3>Notifications</h3>
+          <p class="muted">Receive from Super Admin, send updates to customers.</p>
+
+          <p style="margin-top:8px;">Latest Notification: <strong>Inventory low on apples.</strong></p>
+          <form style="margin-top:10px;" id="notificationForm">
+            <label class="muted" for="message">Send Update:</label>
+            <input id="message" type="text" placeholder="Enter message" style="width:100%; padding:10px; border-radius:10px; border:1px solid rgba(0,0,0,0.06); margin-top:6px;" required />
+            <button class="btn btn--primary" type="submit" style="margin-top:10px;"><i class="fa-solid fa-paper-plane"></i> Send to Customers</button>
+          </form>
+        </div>
+
+  <!-- PURPOSE: Discounts/Promos card — view and apply available promotions to orders -->
+  <div class="card col-6" id="discounts" style="margin-top:6px;">
+          <h3>Discounts / Promos</h3>
+          <p class="muted">Apply only those set by Super Admin.</p>
+          <p style="margin-top:8px;">Current Promo: <strong>10% off on all juices.</strong></p>
+          <button class="btn btn--primary small" onclick="applyPromo()" style="margin-top:8px;"><i class="fa-solid fa-tag"></i> Apply to Order</button>
+        </div>
+
+      </section>
+    </main>
+
+  </div>
+
+  <script src="customer_portal-main/popup.js"></script>
+  <script src="cashier.js"></script>
+</body>
+</html>

@@ -1,0 +1,233 @@
+/* PURPOSE: Admin dashboard styles — tokens and layout for admin tools and panels. */
+:root {
+    --juice-highlight: #FFD966;
+    --secondary-cream: #F8F5E9;
+    --primary-dark: #146B33;
+    --accent-dark: #0c4e23;
+}
+
+body {
+    background-color: var(--juice-highlight); 
+    font-family: Arial, sans-serif; 
+    margin: 0;
+    padding: 0;
+    display: flex; 
+    min-height: 100vh;
+}
+            
+h1, h2, h3, .logo-text, .nav-link, .cta-button {
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+}
+
+#admin-sidebar {
+    width: 280px; 
+    background-color: var(--secondary-cream); 
+    box-shadow: 4px 0 10px rgba(0, 0, 0, 0.3);
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    overflow-y: auto;
+    z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out; 
+}
+            
+@media (min-width: 768px) {
+    #admin-sidebar {
+        transform: translateX(0);
+    }
+}
+
+#admin-sidebar.open {
+    transform: translateX(0);
+}
+            
+.main-content-wrapper {
+    flex-grow: 1;
+    padding: 1rem;
+    width: 100%;
+}
+            
+@media (min-width: 768px) {
+    .main-content-wrapper {
+        margin-left: 280px; 
+        width: calc(100% - 280px);
+    }
+}
+
+.main-container {
+    background-color: white; 
+    min-height: calc(100vh - 2rem);
+}
+            
+.text-shadow-juice {
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+}
+
+.menu-card {
+    background-color: var(--secondary-cream);
+    border: 1px solid var(--primary-dark);
+    box-shadow: 0 4px 6px -1px rgba(20, 107, 51, 0.1), 0 2px 4px -2px rgba(20, 107, 51, 0.06);
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 200;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(20, 107, 51, 0.8);
+    align-items: center;
+    justify-content: center;
+}
+            
+.modal-content {
+    max-width: 90%;
+    margin: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+@media (min-width: 500px) {
+    .modal-content {
+        max-width: 500px;
+    }
+}
+
+::placeholder {
+    color: #146B33;
+    opacity: 0.7;
+}
+            
+.sidebar-link {
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--primary-dark);
+    transition: background-color 0.2s, color 0.2s;
+    border-left: 4px solid transparent;
+}
+
+.sidebar-link:hover, .sidebar-link.active {
+    background-color: rgba(20, 107, 51, 0.1); 
+    border-left-color: var(--juice-highlight);
+    color: var(--accent-dark);
+}
+            
+.sidebar-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 90;
+    display: none;
+}
+
+.sidebar-backdrop.show {
+    display: block;
+}
+            
+.dashboard-card {
+    background-color: var(--secondary-cream);
+    border: 2px solid var(--primary-dark);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(20, 107, 51, 0.1), 0 2px 4px -2px rgba(20, 107, 51, 0.06);
+}
+            
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+            
+.dashboard-table th {
+    background-color: var(--primary-dark);
+    color: white;
+    padding: 0.75rem;
+    text-align: left;
+}
+            
+.dashboard-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+            
+.dashboard-table tr:nth-child(even) {
+    background-color: #f8fafc;
+}
+            
+.action-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+            
+.approve-btn {
+    background-color: var(--primary-dark);
+    color: white;
+    border: none;
+}
+            
+.approve-btn:hover {
+    background-color: var(--accent-dark);
+}
+            
+.cancel-btn {
+    background-color: #e53e3e;
+    color: white;
+    border: none;
+}
+            
+.cancel-btn:hover {
+    background-color: #c53030;
+}
+            
+.stock-btn {
+    background-color: var(--juice-highlight);
+    color: var(--primary-dark);
+    border: 1px solid var(--primary-dark);
+    font-weight: bold;
+}
+            
+.stock-btn:hover {
+    background-color: var(--primary-dark);
+    color: white;
+}
+            
+.sales-card {
+    background-color: var(--primary-dark);
+    color: white;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+}
+            
+.customer-info-card {
+    background-color: var(--secondary-cream);
+    border: 2px solid var(--primary-dark);
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px -1px rgba(20, 107, 51, 0.1), 0 2px 4px -2px rgba(20, 107, 51, 0.06);
+}
+            
+.content-section {
+    display: none;
+}
+            
+.content-section.active {
+    display: block;
+}
+
+/* Utility responsive rules preserved from original */
+@media (min-width: 768px) {
+    /* no-op placeholder for future overrides */
+}
