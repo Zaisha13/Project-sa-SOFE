@@ -82,14 +82,15 @@
           </div>
                 </div>
 
-                <div class="option-group qty-group">
-                    <div class="option-label">Quantity</div>
-                    <div class="qty-controls">
-                        <button id="qty-decrease">−</button>
-                        <div id="qty-display">1</div>
-                        <button id="qty-increase">+</button>
-                    </div>
-                </div>
+        <div class="option-group qty-group">
+          <div class="option-label">Quantity</div>
+          <div class="qty-controls">
+            <button id="qty-decrease">−</button>
+            <!-- Make quantity editable by typing. Use number input so mobile/desktop show numeric keyboard. -->
+            <input id="qty-display" type="number" min="1" step="1" value="1" aria-label="Quantity" />
+            <button id="qty-increase">+</button>
+          </div>
+        </div>
 
                 <div class="option-group">
                     <div class="option-label">Special Instruction</div>
