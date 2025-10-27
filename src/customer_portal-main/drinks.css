@@ -47,6 +47,8 @@ body {
   border:2px solid #2E5D47;
   background:transparent; color:#2E5D47;
   border-radius:12px; padding:8px 14px; cursor:pointer; font-weight:700; font-family: "Century Gothic", sans-serif;
+  display: block; /* center the button inside the product card */
+  margin: 0 auto;
 }
 .product .add-btn:hover { background:#2E5D47; color:#F5F1E6; }
 
@@ -403,25 +405,115 @@ body {
 /* Options */
 .option-group { margin-top:6px; }
 .option-label { font-weight:700; margin-bottom:6px; color:#2E5D47; font-family: "Century Gothic", sans-serif;}
-.size-buttons, .special-buttons { display:flex; gap:8px; }
+.size-buttons, .special-buttons { display:flex; gap:8px; justify-content:center; }
 .size-btn, .special-btn {
-  border:1.8px solid #D6D6D6; background:#fff; padding:8px 12px; border-radius:10px; cursor:pointer; font-weight:500; font-family: "Century Gothic", sans-serif;
+  border: 2px solid #2E5D47;
+  background: #FFFFFF; /* white when unselected */
+  color: #2E5D47;
+  padding: 10px 18px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 800;
+  font-family: "Century Gothic", sans-serif;
+  box-shadow: 0 6px 12px rgba(16,24,12,0.06);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
-.size-btn.active, .special-btn.active { background:#2E5D47; color:#F5F1E6; border-color:transparent; }
+.size-btn:hover, .special-btn:hover { transform: translateY(-2px); background: #f8f5e9; }
+.size-btn.active, .special-btn.active { background:#FFD966; color:#146B33; border-color:#FFD966; }
+
+/* Product card price styling: separate pills per price line */
+.product .price {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+.product .price .price-pill {
+  background: #FFD966;
+  color: #146B33;
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-weight: 800;
+  display: inline-block;
+  box-shadow: 0 6px 12px rgba(16,24,12,0.06);
+}
+.product .price .price-pill .price-label { margin-right: 6px; font-weight: 700; }
 .qty-controls { display:flex; align-items:center; gap:10px; }
 .qty-controls button { width:36px; height:36px; border-radius:8px; border:1px solid #2E5D47; background:white; cursor:pointer; font-size:18px; }
 .qty-controls button:hover { background:#2E5D47; color:#F5F1E6; }
+/* Quantity display (now an input[type=number]) */
 #qty-display { min-width:36px; text-align:center; font-weight:700; }
+
+/* Remove native up/down spinner controls for number input in most browsers */
+#qty-display::-webkit-outer-spin-button,
+#qty-display::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+#qty-display[type=number] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
 
 /* notes & actions */
 #notes { width:100%; min-height:60px; padding:8px; border-radius:8px; border:1px solid #ddd; resize:vertical; }
-.modal-actions { display:flex; justify-content:space-between; align-items:center; margin-top:8px; }
-.price-preview { font-weight:800; color:#0b4a2b; }
-.add-confirm-btn { background:#2E5D47; color:#F5F1E6; border:none; padding:10px 18px; border-radius:10px; cursor:pointer; font-weight:800; }
+.modal-actions {
+  /* Stack price and action buttons vertically and center them */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* Price preview: yellow pill, centered */
+.modal-right .price-preview {
+  background: #FFD966; /* warm yellow */
+  color: #123; /* dark green/near-black text for contrast */
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: 900;
+  font-size: 18px;
+  text-align: center;
+  display: inline-block;
+  box-shadow: 0 4px 8px rgba(16, 24, 12, 0.06);
+}
+
+/* Make the numeric price stand out inside the pill */
+.modal-right .price-preview #modal-price,
+.modal-right .price-preview span {
+  font-weight: 900;
+  font-size: 18px;
+  color: inherit;
+}
+
+/* Center action buttons and make Add button more prominent */
+.modal-action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.add-confirm-btn {
+  background: #2E5D47;
+  color: #F5F1E6;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 16px;
+}
 .add-confirm-btn:hover {
   background: #234736; /* slightly darker green */
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
 }
 
 /* Style the modal cancel button specifically to match modal action styles */
