@@ -172,26 +172,127 @@ document.addEventListener("DOMContentLoaded", () => {
         username: username
       });
       localStorage.setItem(USER_DATA_KEY, JSON.stringify(unifiedData));
+      // Auto-login the newly registered user
+      try {
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('currentUser', JSON.stringify(user));
+      } catch (err) { console.warn('Failed to set login state after registration', err); }
+
+      // If the user had a pending guest checkout, save it under their account
+      try {
+        processPendingGuestOrder(user);
+      } catch (err) { console.warn('processPendingGuestOrder failed', err); }
+
+      // If there was a pending guest checkout, save it to the user's saved cart and instruct the app
+      // to open the checkout modal after redirecting back to the menu.
+      try {
+        const saved = processPendingGuestOrder(user);
+        if (saved) {
+          try { localStorage.setItem('open_checkout_after_login', 'true'); } catch (e) {}
+        }
+      } catch (err) { console.warn('processPendingGuestOrder during registration failed', err); }
 
       if (typeof showPopup !== 'undefined') {
         showPopup('success', {
-          message: 'Registration successful! You can now log in.',
+          message: 'Registration successful! You are now logged in.' + (localStorage.getItem('open_checkout_after_login') ? ' Your cart was saved and checkout will resume.' : ''),
           actions: [
             {
-              text: 'Go to Login',
+              text: 'Continue',
               type: 'primary',
               handler: () => {
                 if (typeof hidePopup !== 'undefined') hidePopup();
-                window.location.href = "login_customer.html";
+                // Redirect to the menu and let drinks.js open checkout automatically when it sees the flag
+                window.location.href = 'drinks.html';
               }
             }
           ]
         });
       } else {
-        alert('Registration successful! You can now log in.');
-        window.location.href = "login_customer.html";
+        alert('Registration successful! You are now logged in.');
+        window.location.href = 'drinks.html';
       }
     });
+  }
+
+  // Helper: generate next order id (same logic as in drinks.js)
+  function generateOrderId() {
+    try {
+      const orders = JSON.parse(localStorage.getItem('jessie_orders') || '[]');
+      let maxNum = 0;
+      orders.forEach(o => {
+        if (!o || !o.id) return;
+        const id = String(o.id).trim();
+        if (/^\d+$/.test(id)) { maxNum = Math.max(maxNum, parseInt(id,10)); return; }
+        const m = id.match(/(\d+)$/);
+        if (m) maxNum = Math.max(maxNum, parseInt(m[1],10));
+      });
+      const next = maxNum + 1;
+      return 'ORD-' + String(next).padStart(3, '0');
+    } catch (err) {
+      return 'ORD-' + String(Date.now()).slice(-6);
+    }
+  }
+
+  // Helper: generate a safe user key used for localStorage keys
+  function userStorageKeyFor(user) {
+    const id = (user && (user.email || user.username)) ? (user.email || user.username) : ('user_' + Date.now());
+    // Use encodeURIComponent to make a safe key (email safe-encoded)
+    return encodeURIComponent(String(id).toLowerCase());
+  }
+
+  // Helper: if guest has a pending checkout, merge it into any existing saved cart for the provided user
+  // This preserves the cart so when the user returns to the menu it will be restored into the checkout bar.
+  function processPendingGuestOrder(user) {
+    try {
+      const pendingRaw = localStorage.getItem('guest_pending_checkout');
+      if (!pendingRaw) return false;
+      const pending = JSON.parse(pendingRaw || '{}');
+      if (!pending || !Array.isArray(pending.cart) || pending.cart.length === 0) {
+        localStorage.removeItem('guest_pending_checkout');
+        return false;
+      }
+
+      const key = userStorageKeyFor(user);
+      const savedCartKey = `saved_cart_${key}`;
+
+      // Load existing saved cart for this user (if any)
+      let existing = [];
+      try {
+        existing = JSON.parse(localStorage.getItem(savedCartKey) || '[]');
+        if (!Array.isArray(existing)) existing = [];
+      } catch (e) { existing = []; }
+
+      // Merge pending.cart into existing by matching on productId, size, special, notes
+      const merged = [...existing];
+      pending.cart.forEach(pItem => {
+        // Merge by productId only (summing quantities) per requested behavior.
+        // This intentionally collapses variations (size/special/notes) by productId.
+        const matchIdx = merged.findIndex(m => String(m.productId) === String(pItem.productId));
+        if (matchIdx > -1) {
+          // sum quantities
+          merged[matchIdx].qty = (Number(merged[matchIdx].qty) || 0) + (Number(pItem.qty) || 0);
+        } else {
+          // normalize item shape (ensure unitPrice exists)
+          const copy = Object.assign({}, pItem);
+          if (typeof copy.unitPrice === 'undefined' && typeof copy.price !== 'undefined') copy.unitPrice = copy.price;
+          merged.push(copy);
+        }
+      });
+
+      try {
+        localStorage.setItem(savedCartKey, JSON.stringify(merged));
+      } catch (e) { console.warn('Failed to save merged user cart', e); }
+
+      // Clear the guest pending snapshot
+      localStorage.removeItem('guest_pending_checkout');
+
+      if (typeof showToast !== 'undefined') showToast('success', 'Cart Saved', 'Your cart has been saved to your account.');
+      return true;
+    } catch (err) {
+      console.warn('processPendingGuestOrder error', err);
+      try { localStorage.removeItem('guest_pending_checkout'); } catch (e) {}
+      return false;
+    }
   }
 
   // -----------------------
@@ -299,13 +400,22 @@ document.addEventListener("DOMContentLoaded", () => {
                   
                   localStorage.setItem("isLoggedIn", "true");
                   localStorage.setItem("currentUser", JSON.stringify(demoUser));
-                  
+
+                  // If there was a pending guest checkout, process it now for this user
+                  try {
+                    const saved = processPendingGuestOrder(demoUser);
+                    if (saved) {
+                      try { localStorage.setItem('open_checkout_after_login', 'true'); } catch (e) {}
+                    }
+                  } catch (err) { console.warn('processPendingGuestOrder failed', err); }
+
                   if (typeof showToast !== 'undefined') {
                     showToast('success', 'Google Login', 'Successfully signed in with Google!');
                   }
                   setTimeout(() => {
-                    window.location.href = getRedirectPath('customer');
-                  }, 1500);
+                    // Redirect to menu so the checkout modal can auto-open
+                    window.location.href = 'drinks.html';
+                  }, 800);
                 }
               }
             ]
