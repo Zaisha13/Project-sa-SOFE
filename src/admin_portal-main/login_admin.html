@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login | Jessie Cane</title>
+  <link rel="stylesheet" href="header.css">
+  <link rel="stylesheet" href="auth.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body {
+      background-color: #fffde9;
+      margin: 0;
+      padding: 0;
+    }
+    .admin-branding {
+      background: linear-gradient(135deg, #8B4513, #A0522D);
+      color: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .admin-branding h2 {
+      color: white;
+      margin: 0;
+    }
+    .admin-branding p {
+      margin: 5px 0 0 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+    .forgot-password {
+      text-align: center;
+      margin-top: 10px;
+    }
+    .forgot-password a {
+      color: #A0522D;
+      text-decoration: none;
+      font-size: 14px;
+    }
+    .forgot-password a:hover {
+      text-decoration: underline;
+    }
+    /* Override header colors for admin */
+    :root {
+      --header-bg: #8B4513;
+      --header-text: #FAF9F4;
+      --header-accent: #E5C100;
+    }
+  </style>
+</head>
+<body>
+  <!-- PURPOSE: Admin login page — authenticate admin users -->
+  <!-- HEADER -->
+  <header>
+    <div class="left-header">
+      <img src="../customer_portal-main/images/logo.png" alt="Jessie Cane Logo" onerror="this.style.display='none'">
+      <span style="font-size: 18px; font-weight: bold;">Admin Portal</span>
+    </div>
+    <div class="right-header">
+      <a href="login_admin.html" class="nav-btn active">Login</a>
+    </div>
+  </header>
+
+  <main style="display: flex; justify-content: center; align-items: center; min-height: calc(100vh - 80px); padding: 20px;">
+    <div class="login-container">
+      <div class="admin-branding">
+        <h2><i class="fas fa-user-shield"></i> ADMIN LOGIN</h2>
+        <p>Administrator access only</p>
+      </div>
+      <form class="auth-form" id="adminLoginForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="Enter your email" required>
+
+        <label for="password">Password</label>
+        <div class="password-wrapper">
+          <input type="password" id="password" placeholder="Enter your password" required>
+          <button type="button" class="password-toggle" id="togglePassword">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+
+        <button type="submit" class="btn-main" style="background: linear-gradient(135deg, #8B4513, #A0522D);">
+          <i class="fas fa-sign-in-alt"></i> Log In
+        </button>
+
+        <div class="forgot-password">
+          <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <script src="../customer_portal-main/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const form = document.getElementById('adminLoginForm');
+      const forgotLink = document.getElementById('forgotPasswordLink');
+
+      // Login handler
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        loginUser('admin');
+      });
+
+      // Forgot password handler
+      forgotLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        handleForgotPassword('admin');
+      });
+      
+      // Password toggle functionality
+      const togglePassword = document.getElementById('togglePassword');
+      const passwordInput = document.getElementById('password');
+      
+      if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+          const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+          passwordInput.setAttribute('type', type);
+          
+          // Toggle icon
+          const icon = togglePassword.querySelector('i');
+          if (type === 'password') {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+          } else {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

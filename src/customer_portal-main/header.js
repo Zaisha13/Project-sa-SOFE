@@ -103,7 +103,7 @@ document.addEventListener('DOMContentLoaded', function(){
         rightHeader.appendChild(reg);
 
         const log = document.createElement('a');
-        log.href = 'login.html'; log.className = 'nav-btn auth-link login-link'; log.textContent = 'Login';
+        log.href = 'login_customer.html'; log.className = 'nav-btn auth-link login-link'; log.textContent = 'Login';
         rightHeader.appendChild(log);
       } else {
         // Logged in: enable profile and add Logout
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function(){
           e.preventDefault();
           localStorage.removeItem('isLoggedIn');
           localStorage.removeItem('currentUser');
-          window.location.href = 'login.html';
+          window.location.href = 'login_customer.html';
         });
         rightHeader.appendChild(logoutEl);
       }
