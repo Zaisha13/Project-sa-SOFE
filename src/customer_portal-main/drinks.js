@@ -222,8 +222,8 @@ window.addEventListener("DOMContentLoaded", () => {
                 <h3>${p.name}</h3>
                 <p>${p.desc}</p>
                 <div class="price">
-                    Regular: ₱${(p.priceRegular || 0).toFixed(2)}<br>
-                    Tall: ₱${(p.priceTall || p.priceRegular || 0).toFixed(2)}
+                    <div class="price-pill"><span class="price-label">Regular</span> <span class="price-amt">₱${(p.priceRegular || 0).toFixed(2)}</span></div>
+                    <div class="price-pill"><span class="price-label">Tall</span> <span class="price-amt">₱${(p.priceTall || p.priceRegular || 0).toFixed(2)}</span></div>
                 </div>
                 <button class="add-btn" data-id="${p.id}">Add to Cart</button>
             `;
@@ -247,11 +247,17 @@ window.addEventListener("DOMContentLoaded", () => {
         if (!product || !modalBackdrop) return;
 
     modalState = { productId, size: "Regular", qty: 1, special: "None", notes: "" };
-    if (modalImg) modalImg.src = normalizeImagePath(product.img) || "";
+        if (modalImg) modalImg.src = normalizeImagePath(product.img) || "";
         if (modalName) modalName.textContent = product.name || "";
         if (modalDesc) modalDesc.textContent = product.desc || "";
         if (notesInput) notesInput.value = "";
-        if (qtyDisplay) qtyDisplay.textContent = modalState.qty;
+        // If qtyDisplay is an input (made editable), set its value; otherwise fallback to textContent
+        if (qtyDisplay) {
+            try {
+                if (typeof qtyDisplay.value !== 'undefined') qtyDisplay.value = String(modalState.qty || 1);
+                else qtyDisplay.textContent = String(modalState.qty || 1);
+            } catch (err) { try { qtyDisplay.textContent = String(modalState.qty || 1); } catch (e) {} }
+        }
 
         sizeButtons.forEach(b => {
             const ds = (b.dataset && b.dataset.size) || b.getAttribute && b.getAttribute('data-size') || '';
@@ -379,17 +385,62 @@ function updateModalPrice() {
         });
     });
 
+    // Helper to read and normalize quantity from the display/input
+    function readQtyFromDisplay() {
+        try {
+            if (!qtyDisplay) return 1;
+            // If input element, use valueAsNumber where available
+            if (typeof qtyDisplay.value !== 'undefined') {
+                const n = Number(qtyDisplay.value);
+                if (!Number.isFinite(n) || n < 1) return 1;
+                return Math.max(1, Math.floor(n));
+            }
+            const n = parseInt(qtyDisplay.textContent || qtyDisplay.innerText || '1', 10);
+            if (isNaN(n) || n < 1) return 1;
+            return Math.max(1, n);
+        } catch (err) { return 1; }
+    }
+
+    function writeQtyToDisplay(val) {
+        if (!qtyDisplay) return;
+        try {
+            const s = String(Math.max(1, Math.floor(Number(val) || 1)));
+            if (typeof qtyDisplay.value !== 'undefined') qtyDisplay.value = s;
+            else qtyDisplay.textContent = s;
+        } catch (err) {
+            try { qtyDisplay.textContent = String(val); } catch (e) { }
+        }
+    }
+
     qtyIncrease && qtyIncrease.addEventListener("click", () => {
-        modalState.qty++;
-        qtyDisplay.textContent = modalState.qty;
+        modalState.qty = (modalState.qty || 1) + 1;
+        writeQtyToDisplay(modalState.qty);
         updateModalPrice();
     });
 
     qtyDecrease && qtyDecrease.addEventListener("click", () => {
-        if (modalState.qty > 1) modalState.qty--;
-        qtyDisplay.textContent = modalState.qty;
+        modalState.qty = Math.max(1, (modalState.qty || 1) - 1);
+        writeQtyToDisplay(modalState.qty);
         updateModalPrice();
     });
+
+    // Allow typing directly into the quantity input (if present)
+    if (qtyDisplay && typeof qtyDisplay.addEventListener === 'function') {
+        qtyDisplay.addEventListener('input', (e) => {
+            const v = readQtyFromDisplay();
+            // update state and price live; keep minimum of 1
+            modalState.qty = v;
+            updateModalPrice();
+        });
+
+        // On blur ensure a valid value is present
+        qtyDisplay.addEventListener('blur', (e) => {
+            const v = readQtyFromDisplay();
+            modalState.qty = v;
+            writeQtyToDisplay(modalState.qty);
+            updateModalPrice();
+        });
+    }
 
     notesInput && notesInput.addEventListener("input", (e) => {
         modalState.notes = e.target.value || "";
@@ -695,7 +746,12 @@ function updateModalPrice() {
                 if (modalName) modalName.textContent = item.name || (product && product.name) || '';
                 if (modalDesc) modalDesc.textContent = (product && product.desc) || '';
                 if (notesInput) notesInput.value = modalState.notes;
-                if (qtyDisplay) qtyDisplay.textContent = String(modalState.qty || 1);
+                if (qtyDisplay) {
+                    try {
+                        if (typeof qtyDisplay.value !== 'undefined') qtyDisplay.value = String(modalState.qty || 1);
+                        else qtyDisplay.textContent = String(modalState.qty || 1);
+                    } catch (err) { try { qtyDisplay.textContent = String(modalState.qty || 1); } catch (e) {} }
+                }
 
                 sizeButtons.forEach(b => b.classList.toggle('active', (b.dataset.size || b.getAttribute('data-size')) === modalState.size));
                 specialButtons.forEach(b => b.classList.toggle('active', b.dataset.special === modalState.special));
@@ -751,15 +807,78 @@ function updateModalPrice() {
         });
         return;
     }
+    // Compute totals and item count early
+    const total = cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
+    const itemCount = cart.reduce((sum, item) => sum + item.qty, 0);
+
+    // If the order is very large, ask the user if they'd prefer to send an inquiry instead
+    if (itemCount >= 30) {
+        // If guest, persist the pending snapshot so choosing "No" keeps the saved cart
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            try {
+                const pending = {
+                    cart: cart || [],
+                    subtotal: total,
+                    itemCount: itemCount,
+                    createdAt: Date.now()
+                };
+                localStorage.setItem('guest_pending_checkout', JSON.stringify(pending));
+            } catch (err) { console.warn('Failed to save guest_pending_checkout', err); }
+        }
+
+        showPopup('warning', {
+            title: "Large Order Detected",
+            message: "You're placing too many items. Would you like to send an inquiry form instead?",
+            actions: [
+                {
+                    text: 'No, thank you',
+                    type: 'secondary',
+                    handler: () => {
+                        try {
+                            // If logged-in, persist the current cart to the user's saved cart
+                            if (localStorage.getItem('isLoggedIn') === 'true') {
+                                try {
+                                    const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+                                    const userKey = encodeURIComponent((currentUser && (currentUser.email || currentUser.username) || ('user_' + Date.now())).toLowerCase());
+                                    localStorage.setItem(`saved_cart_${userKey}`, JSON.stringify(cart || []));
+                                } catch (e) { console.warn('Failed to save user cart on large-order No action', e); }
+                            }
+                        } catch (e) { /* ignore */ }
+                        try { hidePopup(); } catch (e) {}
+                        try { if (typeof showToast === 'function') showToast('success', 'Cart Saved', 'Your cart has been saved.'); } catch (e) {}
+                    }
+                },
+                {
+                    text: 'Yes please',
+                    type: 'primary',
+                    handler: () => {
+                        try { hidePopup(); } catch (e) {}
+                        // Open inquiry page in a new tab so the user keeps their current cart/session
+                        try { window.open('inquiry.html', '_blank'); } catch (e) { window.location.href = 'inquiry.html'; }
+                    }
+                }
+            ]
+        });
+        return;
+    }
+
     // If not logged in, show inline login modal before continuing to checkout
     if (localStorage.getItem('isLoggedIn') !== 'true') {
+        // Save the pending cart so it can be restored after the user registers/logs in
+        try {
+            const pending = {
+                cart: cart || [],
+                subtotal: total,
+                itemCount: itemCount,
+                createdAt: Date.now()
+            };
+            localStorage.setItem('guest_pending_checkout', JSON.stringify(pending));
+        } catch (err) { console.warn('Failed to save guest_pending_checkout', err); }
+
         // Show the inline login dialog which resumes checkout after successful login
         showLoginModal();
         return;
     }
-
-    const total = cart.reduce((sum, item) => sum + (item.unitPrice * item.qty), 0);
-    const itemCount = cart.reduce((sum, item) => sum + item.qty, 0);
     
     // Prefer logged-in user info when available
     const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
@@ -919,7 +1038,92 @@ function updateModalPrice() {
     // Initialize UI
     initializeDefaultMenuItems();
     renderProducts();
+    // Restore saved cart for logged-in user (if any)
+    try {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+        if (currentUser && (currentUser.username || currentUser.email)) {
+            const userKey = encodeURIComponent((currentUser.email || currentUser.username).toLowerCase());
+            const saved = localStorage.getItem(`saved_cart_${userKey}`);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        cart = parsed;
+                        // Keep the saved cart after restoring so the user's saved cart persists across sessions
+                        // previously we removed saved_cart_<userKey> here which prevented persistence
+                    }
+                } catch (e) { console.warn('Failed to parse saved cart for user', e); }
+            }
+        }
+    } catch (err) { console.warn('restore saved cart error', err); }
+
     updateCartUI();
+
+    // Helper: open the checkout modal and populate items/summary from current cart
+    function openCheckoutModal() {
+        try {
+            const checkoutModal = document.getElementById('checkout-modal');
+            const checkoutItemsEl = document.getElementById('checkout-items');
+            const subtotalEl = document.getElementById('checkout-subtotal');
+            const taxEl = document.getElementById('checkout-tax');
+            const totalEl = document.getElementById('checkout-total');
+
+            if (!checkoutModal || !checkoutItemsEl || !subtotalEl || !taxEl || !totalEl) return;
+
+            // Populate items
+            checkoutItemsEl.innerHTML = '';
+            if (!cart || cart.length === 0) {
+                checkoutItemsEl.innerHTML = '<div style="text-align:center;color:#666;padding:12px;">Your cart is empty.</div>';
+            } else {
+                cart.forEach(item => {
+                    const row = document.createElement('div');
+                    row.className = 'checkout-item';
+                    const price = Number(item.unitPrice || item.price || 0) * (Number(item.qty) || 0);
+                    row.innerHTML = `
+                        <div style="flex:1;">
+                            <div style="font-weight:700;color:#146B33;">${escapeHtml(item.name || '')} <small style="font-weight:600;">(${escapeHtml(item.size || '')})</small></div>
+                            <div style="color:#556;font-size:13px;">${escapeHtml(item.special || '')}${item.notes ? ' • ' + escapeHtml(item.notes) : ''}</div>
+                        </div>
+                        <div style="margin-left:12px; font-weight:700;">₱${price}</div>
+                    `;
+                    checkoutItemsEl.appendChild(row);
+                });
+            }
+
+            const subtotal = cart.reduce((s, it) => s + ((Number(it.unitPrice || it.price) || 0) * (Number(it.qty) || 0)), 0);
+            const tax = parseFloat((subtotal * 0.085).toFixed(2));
+            const total = parseFloat((subtotal * 1.085).toFixed(2));
+
+            subtotalEl.textContent = `₱${subtotal.toFixed(2)}`;
+            taxEl.textContent = `₱${tax.toFixed(2)}`;
+            totalEl.textContent = `₱${total.toFixed(2)}`;
+
+            // show modal
+            checkoutModal.style.display = 'block';
+            document.body.classList.add('modal-open');
+
+            // Auto-focus the customer name field for quicker checkout input
+            try {
+                const customerNameEl = document.getElementById('customer-name');
+                if (customerNameEl) {
+                    // small timeout to ensure element is visible and focusable
+                    setTimeout(() => {
+                        try { customerNameEl.focus(); if (customerNameEl.select) customerNameEl.select(); } catch (e) {}
+                    }, 50);
+                }
+            } catch (e) { /* ignore focus errors */ }
+        } catch (err) { console.warn('openCheckoutModal failed', err); }
+    }
+
+    // If we were redirected here after registration/login and requested to open checkout, do so
+    try {
+        if (localStorage.getItem('open_checkout_after_login') === 'true') {
+            // remove flag so it doesn't reopen repeatedly
+            localStorage.removeItem('open_checkout_after_login');
+            // open checkout modal and populate it
+            openCheckoutModal();
+        }
+    } catch (err) { /* ignore */ }
 
     // Delegated fallback: if per-card add-btn listeners fail to attach, this will still open the modal
     document.addEventListener('click', function delegatedAddBtn(e) {
