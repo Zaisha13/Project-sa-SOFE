@@ -28,34 +28,14 @@ if (typeof window !== 'undefined' && window.location && window.location.protocol
 document.addEventListener("DOMContentLoaded", () => {
   // Check if user is logged in and has cashier role
   if (localStorage.getItem("isLoggedIn") !== "true") {
-    showPopup('info', {
-      title: 'Login Required',
-      message: 'Please log in to access the cashier dashboard.',
-      actions: [
-        {
-          text: 'Go to Login',
-          type: 'primary',
-          handler: () => { window.location.href = "customer_portal-main/login.html"; }
-        }
-      ]
-    });
+    window.location.href = "login_cashier.html";
     return;
   }
 
   const currentUser = JSON.parse(localStorage.getItem("currentUser") || "{}");
   // Check if user has cashier role
   if (currentUser.role !== 'cashier' && currentUser.role !== 'admin') {
-    showPopup('error', {
-      title: 'Access Denied',
-      message: 'You do not have permission to access the cashier dashboard.',
-      actions: [
-        {
-          text: 'Go to Customer Portal',
-          type: 'primary',
-          handler: () => { window.location.href = "customer_portal-main/customer_dashboard.html"; }
-        }
-      ]
-    });
+    window.location.href = "login_cashier.html";
     return;
   }
 
@@ -317,7 +297,7 @@ document.getElementById('receiptForm').addEventListener('submit', function(e) { 
   messages to customers. */
 document.getElementById('notificationForm').addEventListener('submit', function(e) { e.preventDefault(); const message = document.getElementById('message').value; showPopup('warning', { title: 'Send Notification', message: `Are you sure you want to send this notification to all customers?\n\n"${message}"`, actions: [ { text: 'Cancel', type: 'secondary', handler: hidePopup }, { text: 'Send to All Customers', type: 'primary', handler: () => { showToast('success', 'Notification Sent', 'Message has been sent to all customers'); this.reset(); hidePopup(); } } ] }); });
 
-document.getElementById('logoutBtn').addEventListener('click', function() { showPopup('warning', { title: 'Confirm Logout', message: 'Are you sure you want to log out from the cashier dashboard?', actions: [ { text: 'Cancel', type: 'secondary', handler: hidePopup }, { text: 'Log Out', type: 'primary', handler: () => { localStorage.removeItem("isLoggedIn"); localStorage.removeItem("currentUser"); showToast('success', 'Logged Out', 'You have been successfully logged out.'); setTimeout(() => { window.location.href = "customer_portal-main/login.html"; }, 1500); } } ] }); });
+document.getElementById('logoutBtn').addEventListener('click', function() { showPopup('warning', { title: 'Confirm Logout', message: 'Are you sure you want to log out from the cashier dashboard?', actions: [ { text: 'Cancel', type: 'secondary', handler: hidePopup }, { text: 'Log Out', type: 'primary', handler: () => { localStorage.removeItem("isLoggedIn"); localStorage.removeItem("currentUser"); showToast('success', 'Logged Out', 'You have been successfully logged out.'); setTimeout(() => { window.location.href = "login_cashier.html"; }, 1500); } } ] }); });
 
 document.getElementById('newItemBtn').addEventListener('click', function() { showPopup('info', { title: 'Create New', message: 'What would you like to create?', actions: [ { text: 'New Order', type: 'primary', handler: () => { showToast('info', 'New Order', 'Opening new order form...'); hidePopup(); } }, { text: 'New Customer', type: 'primary', handler: () => { showToast('info', 'New Customer', 'Opening customer registration...'); hidePopup(); } } ] }); });
 

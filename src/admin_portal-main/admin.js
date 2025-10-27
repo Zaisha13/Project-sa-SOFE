@@ -1,5 +1,31 @@
 /* PURPOSE: Admin dashboard client logic — menu management, reports, modals,
    and admin-only interactions. */
+
+// Authentication check - redirect to login if not authenticated
+function checkAdminAuth() {
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    const currentUser = localStorage.getItem('currentUser');
+    
+    if (!isLoggedIn || !currentUser) {
+        window.location.href = 'login_admin.html';
+        return;
+    }
+    
+    try {
+        const user = JSON.parse(currentUser);
+        if (!user || user.role !== 'admin') {
+            window.location.href = 'login_admin.html';
+            return;
+        }
+    } catch (e) {
+        window.location.href = 'login_admin.html';
+        return;
+    }
+}
+
+// Check authentication before initializing dashboard
+checkAdminAuth();
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeAdminDashboard();
 });
@@ -142,17 +168,17 @@ function initializeAdminDashboard() {
 
     const DEFAULT_MENU_ITEMS = [
         { id: 1, name: 'Pure Sugarcane', description: 'Freshly pressed sugarcane juice in its purest form — naturally sweet, refreshing, and energizing with no added sugar or preservatives.', priceRegular: 79, priceTall: 109, img: '../customer_portal-main/images/pure-sugarcane.png' },
-        { id: 2, name: 'Calamansi Cane', description: 'A zesty twist on classic sugarcane juice, blended with the tangy freshness of calamansi for a perfectly balanced sweet and citrusy drink.', priceRegular: 89, priceTall: 119, img: 'images/calamansi-cane.png' },
-        { id: 3, name: 'Lemon Cane', description: 'Freshly squeezed lemon combined with pure sugarcane juice, creating a crisp and revitalizing drink that awakens your senses.', priceRegular: 89, priceTall: 119, img: 'images/lemon-cane.png' },
-        { id: 4, name: 'Yakult Cane', description: 'A delightful mix of sugarcane juice and Yakult — smooth, creamy, and packed with probiotics for a unique sweet-tangy flavor.', priceRegular: 89, priceTall: 119, img: 'images/yakult-cane.png' },
-        { id: 5, name: 'Calamansi Yakult Cane', description: 'A refreshing blend of calamansi, Yakult, and sugarcane juice — the perfect harmony of sweet, sour, and creamy goodness.', priceRegular: 99, priceTall: 129, img: 'images/calamansi-yakult-cane.png' },
-        { id: 6, name: 'Lemon Yakult Cane', description: 'Experience a fusion of lemon’s zesty tang with Yakult’s smooth creaminess, all complemented by naturally sweet sugarcane.', priceRegular: 99, priceTall: 129, img: 'images/lemon-yakult-cane.png' },
-        { id: 7, name: 'Lychee Cane', description: 'A fragrant and fruity treat made with the exotic sweetness of lychee and the crisp freshness of sugarcane juice.', priceRegular: 99, priceTall: 129, img: 'images/lychee-cane.png' },
-        { id: 8, name: 'Orange Cane', description: 'Fresh orange juice blended with pure sugarcane extract for a bright, citrusy burst of sunshine in every sip.', priceRegular: 109, priceTall: 139, img: 'images/orange-cane.png' },
-        { id: 9, name: 'Passion Fruit Cane', description: 'A tropical blend of tangy passion fruit and naturally sweet sugarcane — vibrant, juicy, and irresistibly refreshing.', priceRegular: 119, priceTall: 149, img: 'images/passion-fruit-cane.png' },
-        { id: 10, name: 'Watermelon Cane', description: 'A hydrating fusion of freshly pressed watermelon and sugarcane juice, offering a light, cooling sweetness that’s perfect for hot days.', priceRegular: 119, priceTall: 149, img: 'images/watermelon-cane.png' },
-        { id: 11, name: 'Strawberry Yogurt Cane', description: 'Creamy strawberry yogurt meets sweet sugarcane for a smooth, fruity, and indulgent drink that’s both refreshing and satisfying.', priceRegular: 119, priceTall: 149, img: 'images/strawberry-yogurt-cane.png' },
-        { id: 12, name: 'Dragon Fruit Cane', description: 'A vibrant blend of dragon fruit and pure sugarcane juice — visually stunning, naturally sweet, and loaded with antioxidants.', priceRegular: 119, priceTall: 149, img: 'images/dragon-fruit-cane.png' }
+        { id: 2, name: 'Calamansi Cane', description: 'A zesty twist on classic sugarcane juice, blended with the tangy freshness of calamansi for a perfectly balanced sweet and citrusy drink.', priceRegular: 89, priceTall: 119, img: '../customer_portal-main/images/calamansi-cane.png' },
+        { id: 3, name: 'Lemon Cane', description: 'Freshly squeezed lemon combined with pure sugarcane juice, creating a crisp and revitalizing drink that awakens your senses.', priceRegular: 89, priceTall: 119, img: '../customer_portal-main/images/lemon-cane.png' },
+        { id: 4, name: 'Yakult Cane', description: 'A delightful mix of sugarcane juice and Yakult — smooth, creamy, and packed with probiotics for a unique sweet-tangy flavor.', priceRegular: 89, priceTall: 119, img: '../customer_portal-main/images/yakult-cane.png' },
+        { id: 5, name: 'Calamansi Yakult Cane', description: 'A refreshing blend of calamansi, Yakult, and sugarcane juice — the perfect harmony of sweet, sour, and creamy goodness.', priceRegular: 99, priceTall: 129, img: '../customer_portal-main/images/calamansi-yakult-cane.png' },
+        { id: 6, name: 'Lemon Yakult Cane', description: 'Experience a fusion of lemon\'s zesty tang with Yakult\'s smooth creaminess, all complemented by naturally sweet sugarcane.', priceRegular: 99, priceTall: 129, img: '../customer_portal-main/images/lemon-yakult-cane.png' },
+        { id: 7, name: 'Lychee Cane', description: 'A fragrant and fruity treat made with the exotic sweetness of lychee and the crisp freshness of sugarcane juice.', priceRegular: 99, priceTall: 129, img: '../customer_portal-main/images/lychee-cane.png' },
+        { id: 8, name: 'Orange Cane', description: 'Fresh orange juice blended with pure sugarcane extract for a bright, citrusy burst of sunshine in every sip.', priceRegular: 109, priceTall: 139, img: '../customer_portal-main/images/orange-cane.png' },
+        { id: 9, name: 'Passion Fruit Cane', description: 'A tropical blend of tangy passion fruit and naturally sweet sugarcane — vibrant, juicy, and irresistibly refreshing.', priceRegular: 119, priceTall: 149, img: '../customer_portal-main/images/passion-fruit-cane.png' },
+        { id: 10, name: 'Watermelon Cane', description: 'A hydrating fusion of freshly pressed watermelon and sugarcane juice, offering a light, cooling sweetness that\'s perfect for hot days.', priceRegular: 119, priceTall: 149, img: '../customer_portal-main/images/watermelon-cane.png' },
+        { id: 11, name: 'Strawberry Yogurt Cane', description: 'Creamy strawberry yogurt meets sweet sugarcane for a smooth, fruity, and indulgent drink that\'s both refreshing and satisfying.', priceRegular: 119, priceTall: 149, img: '../customer_portal-main/images/strawberry-yogurt-cane.png' },
+        { id: 12, name: 'Dragon Fruit Cane', description: 'A vibrant blend of dragon fruit and pure sugarcane juice — visually stunning, naturally sweet, and loaded with antioxidants.', priceRegular: 119, priceTall: 149, img: '../customer_portal-main/images/dragon-fruit-cane.png' }
     ];
 
     function resolveImagePath(path) {
@@ -244,7 +270,7 @@ function initializeAdminDashboard() {
             message: 'Are you sure you want to log out?',
             actions: [
                 { text: 'Cancel', type: 'secondary', handler: hidePopup },
-                { text: 'Log Out', type: 'primary', handler: () => { localStorage.removeItem('isLoggedIn'); localStorage.removeItem('currentUser'); window.location.href = 'login.html'; } }
+                                 { text: 'Log Out', type: 'primary', handler: () => { localStorage.removeItem('isLoggedIn'); localStorage.removeItem('currentUser'); window.location.href = 'login_admin.html'; } }
             ]
         });
     });
@@ -836,14 +862,11 @@ function initializeAdminDashboard() {
         });
     }
 
-    // Initialize default menu if none exists
+    // Initialize default menu - always reset to defaults
     function initializeDefaultMenu() {
-        const menuItems = JSON.parse(localStorage.getItem(MENU_STORAGE_KEY) || '[]');
-        // If admin menu is empty, seed with canonical defaults (assign stable ids) so admin sees them
-        if (!Array.isArray(menuItems) || menuItems.length === 0) {
-            const seeded = DEFAULT_MENU_ITEMS.slice().map((it, idx) => Object.assign({ id: idx + 1 }, it));
-            localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(seeded));
-        }
+        // Force reset to canonical defaults to replace any old incorrect menu items
+        const seeded = DEFAULT_MENU_ITEMS.slice().map((it, idx) => Object.assign({ id: it.id || idx + 1 }, it));
+        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(seeded));
     }
 
     // Initial setup
